@@ -1,6 +1,6 @@
 
 name = "mastra-worker-hello-world"
-main = "src/index.ts"
+main = "src/app.ts"
 compatibility_date = "2024-01-01"
 
 [vars]
