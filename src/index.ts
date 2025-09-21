@@ -3,10 +3,11 @@ import { MastraProviders, Models, type MastraConfig } from './providers';
 
 // Method 1: Auto-detection (simplest)
 const autoProvider = MastraProviders.auto();
+const _providerModel = autoProvider.get()(Models.WorkersAI.LLAMA_3_1_8B).model || Models.WorkersAI.LLAMA_3_1_8B;
 const agent = new Agent({
   name: "auto-agent",
   instructions: "You are an AI assistant.",
-  model: autoProvider.get()(Models.WorkersAI.LLAMA_3_1_8B)
+  model: [ { model: _providerModel as unknown as any } ]
 });
 
 // Method 2: Type-safe explicit config

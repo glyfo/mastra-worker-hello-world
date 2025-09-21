@@ -79,7 +79,7 @@ export class MastraLLMProvider {
       throw new Error('OpenAI API Key is required. Set OPENAI_API_KEY environment variable or pass apiKey in config');
     }
 
-    return createOpenAICompatible({
+    const provider = createOpenAICompatible({
       name: 'openai',
       baseURL,
       apiKey,
@@ -88,6 +88,18 @@ export class MastraLLMProvider {
         ...headers
       }
     });
+
+    return {
+      name: provider?.name ?? 'openai',
+      baseURL,
+      apiKey,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      },
+      // Merge any other properties from the underlying provider implementation
+      ...(provider as unknown as Record<string, unknown>)
+    } as OpenAICompatibleProvider;
   }
 
   private createWorkersAIProvider(config: Omit<WorkersAIConfig, 'type'>): OpenAICompatibleProvider {
@@ -107,7 +119,7 @@ export class MastraLLMProvider {
 
     const baseURL = this.buildWorkersAIUrl(accountId, gatewayId);
 
-    return createOpenAICompatible({
+    const provider = createOpenAICompatible({
       name: 'workers-ai',
       baseURL,
       apiKey: apiToken,
@@ -117,6 +129,18 @@ export class MastraLLMProvider {
         ...headers
       }
     });
+
+    return {
+      name: provider?.name ?? 'workers-ai',
+      baseURL,
+      apiKey: apiToken,
+      headers: {
+        'CF-AIG-Source': 'mastra-agent',
+        'Content-Type': 'application/json',
+        ...headers
+      },
+      ...(provider as unknown as Record<string, unknown>)
+    } as OpenAICompatibleProvider;
   }
 
   private buildWorkersAIUrl(accountId: string, gatewayId: string): string {
@@ -139,13 +163,18 @@ export class MastraLLMProvider {
   }
 
   /**
-   * Direct provider access
+   * Direct provider access — returns a callable that accepts a model name
    */
-  public get(): OpenAICompatibleProvider {
+  public get(): ModelFunction {
     if (!this.provider) {
       throw new Error('Provider not initialized');
     }
-    return this.provider;
+
+    const providerCopy = this.provider;
+    return (modelName?: string) => ({
+      ...providerCopy,
+      model: modelName
+    });
   }
 
   /**
