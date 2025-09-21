@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/emails/*": ["emails/*"]
+      "@/emails/*": ["src/emails/*"]
     },
     "target": "ES2022",
     "lib": ["ES2022", "WebWorker"],
@@ -46,7 +46,7 @@
   },
   "include": [
     "src/**/*",
-    "emails/**/*"
+    "src/emails/**/*"
   ],
   "exclude": [
     "node_modules",

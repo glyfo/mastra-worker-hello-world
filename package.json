@@ -1,21 +1,25 @@
 {
-  "name": "resend-email-worker",
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "start": "wrangler dev"
-  },
-  "dependencies": {
-    "hono": "^3.12.0",
-    "resend": "^3.2.0",
-    "@react-email/render": "^0.0.12",
-    "react": "^18.2.0"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240117.0",
-    "@types/react": "^18.2.48",
-    "typescript": "^5.3.3",
-    "wrangler": "^3.25.0"
-  }
+    "name": "mastra-hono-hello-world",
+    "version": "1.0.0",
+    "description": "Hello World app using Mastra, Cloudflare AI Gateway, and Hono",
+    "main": "index.ts",
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "start": "wrangler dev",
+        "test": "vitest"
+    },
+    "dependencies": {
+        "@ai-sdk/openai-compatible": "^1.0.18",
+        "@mastra/core": "^0.17.1",
+        "hono": "^4.6.0"
+    },
+    "devDependencies": {
+        "@cloudflare/vitest-pool-workers": "^0.9.3",
+        "@cloudflare/workers-types": "^4.20250921.0",
+        "@types/react": "^19.1.13",
+        "typescript": "^5.9.2",
+        "vitest": "^3.2.4",
+        "wrangler": "^4.38.0"
+    }
 }
