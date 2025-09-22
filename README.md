@@ -12,7 +12,6 @@ This repository is intended as a local development starter demonstrating how to:
 
 ## Prerequisites
 
-- Node.js 20+
 - Wrangler CLI (for Cloudflare Workers): `npm install -g wrangler`
 
 ## Environment Variables
@@ -46,7 +45,7 @@ npm install
 Start the worker in development mode:
 
 ```bash
-wrangler dev
+pnpm dev
 ```
 
 By default Wrangler serves at `http://127.0.0.1:8787`.
