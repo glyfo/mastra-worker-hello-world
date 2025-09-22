@@ -5,6 +5,35 @@
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 
+// Safe environment accessor that works in Node, Cloudflare Workers and Deno
+function getEnv(key: string): string | undefined {
+  try {
+    // Node.js
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof process !== 'undefined' && (process as any)?.env) return (process as any).env[key];
+  } catch (e) {
+    // ignore
+  }
+
+  try {
+    // Cloudflare Workers and other globals
+    // @ts-ignore
+    if (typeof globalThis !== 'undefined' && (globalThis as any)?.[key]) return (globalThis as any)[key];
+  } catch (e) {
+    // ignore
+  }
+
+  try {
+    // Deno
+    // @ts-ignore
+    if (typeof Deno !== 'undefined' && Deno.env) return Deno.env.get(key);
+  } catch (e) {
+    // ignore
+  }
+
+  return undefined;
+}
+
 // Type definitions
 export type ProviderType = 'openai' | 'workers-ai' | 'cloudflare';
 
@@ -70,8 +99,8 @@ export class MastraLLMProvider {
 
   private createOpenAIProvider(config: Omit<OpenAIConfig, 'type'>): OpenAICompatibleProvider {
     const {
-      apiKey = process.env.OPENAI_API_KEY,
-  baseURL = 'https://api.openai.com/v1',
+      apiKey = getEnv('OPENAI_API_KEY'),
+      baseURL = 'https://api.openai.com/v1',
       headers = {}
     } = config;
 
@@ -104,9 +133,9 @@ export class MastraLLMProvider {
 
   private createWorkersAIProvider(config: Omit<WorkersAIConfig, 'type'>): OpenAICompatibleProvider {
     const {
-      accountId = process.env.CLOUDFLARE_ACCOUNT_ID,
-      gatewayId = process.env.CLOUDFLARE_GATEWAY_ID,
-      apiToken = process.env.CLOUDFLARE_API_TOKEN,
+      accountId = getEnv('CLOUDFLARE_ACCOUNT_ID'),
+      gatewayId = getEnv('CLOUDFLARE_GATEWAY_ID'),
+      apiToken = getEnv('CLOUDFLARE_API_TOKEN'),
       headers = {}
     } = config;
 
@@ -224,14 +253,14 @@ export const MastraProviders = {
    */
   auto: (): MastraLLMProvider => {
     // Check for OpenAI credentials
-    if (process.env.OPENAI_API_KEY) {
+    if (getEnv('OPENAI_API_KEY')) {
       return MastraProviders.openai();
     }
-    
+
     // Check for Cloudflare Workers AI credentials
-    if (process.env.CLOUDFLARE_ACCOUNT_ID && 
-        process.env.CLOUDFLARE_GATEWAY_ID && 
-        process.env.CLOUDFLARE_API_TOKEN) {
+    if (getEnv('CLOUDFLARE_ACCOUNT_ID') && 
+        getEnv('CLOUDFLARE_GATEWAY_ID') && 
+        getEnv('CLOUDFLARE_API_TOKEN')) {
       return MastraProviders.workersai();
     }
     
