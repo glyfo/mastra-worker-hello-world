@@ -6,9 +6,3 @@ compatibility_date = "2024-01-01"
 [vars]
 # Non-sensitive environment variables
 DEFAULT_FROM = "Lily Agent <lily.agent@mail.glyfo.com>"
-
-# For local development, create a .dev.vars file with:
-# RESEND_API_KEY=re_your_actual_resend_api_key_here
-
-# For production, use wrangler secrets:
-# wrangler secret put RESEND_API_KEY

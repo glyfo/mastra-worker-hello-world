@@ -26,6 +26,17 @@ CLOUDFLARE_GATEWAY_ID=your_gateway_id
 CLOUDFLARE_API_TOKEN=your_api_token
 ```
 
+Project root example
+
+```
+Project Root
+├── .dev.vars (Local development)
+│   ├── CLOUDFLARE_ACCOUNT_ID=your_account_id
+│   ├── CLOUDFLARE_GATEWAY_ID=your_gateway_id
+│   ├── CLOUDFLARE_API_TOKEN=your_api_token
+│   └── RESEND_API_KEY=re_your_actual_resend_api_key_here
+```
+
 For OpenAI (alternative):
 
 ```
