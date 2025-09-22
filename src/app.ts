@@ -6,7 +6,7 @@ import { MastraProviders, Models } from './providers';
 // Simple trace helper that integrates with Hono context logs when available
 function trace(msg: string, data?: any) {
   const prefix = '[App]';
-  console.log(prefix, msg, data);
+  console.info(prefix, msg, data);
 }
 
 // Helper: create an agent using autodetected provider (or explicit config)
@@ -21,7 +21,7 @@ async function createMastraAgent(c: Context, opts: { name?: string; instructions
     model: provider.get()(model)
   });
 
-  trace('createMastraAgent: created agent', { name: agent.name }, c);
+  trace('createMastraAgent: created agent', { name: agent.name });
   return agent;
 }
 
