@@ -4,7 +4,7 @@
     "description": "Hello World app using Mastra, Cloudflare AI Gateway, and Hono",
     "main": "index.ts",
     "scripts": {
-        "dev": "wrangler dev --log-level info",
+        "dev": "wrangler dev",
         "deploy": "wrangler deploy",
         "start": "wrangler dev",
         "test": "vitest"

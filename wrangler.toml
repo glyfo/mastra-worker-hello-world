@@ -1,8 +1,21 @@
-
-name = "mastra-worker-hello-world"
+# wrangler.toml
+name = "mastra-hono-hello-world"
 main = "src/app.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
-[vars]
-# Non-sensitive environment variables
-DEFAULT_FROM = "Lily Agent <lily.agent@mail.glyfo.com>"
+# Development configuration
+[env.development]
+# Enable local development with better logging
+vars = { ENVIRONMENT = "development", LOG_LEVEL = "info" }
+
+# Production configuration  
+[env.production]
+vars = { ENVIRONMENT = "production", LOG_LEVEL = "info" }
+
+# Observability configuration
+[observability]
+enabled = true
+# Optional: specify head sampling rate (0.0 to 1.0)
+head_sampling_rate = 1.0
+
