@@ -28,7 +28,14 @@ async function createMastraAgent(c: Context, opts: { name?: string; instructions
 const app = new Hono();
 
 // Simple health check
-app.get('/', (c) => c.json({ status: 'ok' }));
+app.get('/', (c) => {
+  console.info(`Health check accessed from ${c.req.header('cf-connecting-ip') || 'unknown'} at ${new Date().toISOString()}`);
+  return c.json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    cf_ray: c.req.header('cf-ray') || 'unknown'
+  });
+});
 
 
 // POST /hello - greeting endpoint
