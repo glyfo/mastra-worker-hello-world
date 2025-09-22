@@ -10,6 +10,24 @@ function getEnv(key: string, env?: any): string | undefined {
   return env?.[key];
 }
 
+// Lightweight trace logger for debugging provider detection/creation
+function trace(message: string, data?: any, ctx?: any) {
+  const prefix = '[MastraProviders]';
+  try {
+    if (ctx && typeof ctx.log === 'function') {
+      ctx.log(`${prefix} ${message}`, data);
+      return;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  if (typeof console !== 'undefined') {
+    if (console.debug) console.debug(prefix, message, data);
+    else console.log(prefix, message, data);
+  }
+}
+
 // Get Cloudflare configuration from context
 function getCloudflareConfig(env?: any): {
   accountId: string | undefined;
@@ -30,7 +48,7 @@ function getCloudflareConfig(env?: any): {
 }
 
 // Type definitions
-export type ProviderType = 'openai' | 'workers-ai' | 'cloudflare';
+export type ProviderType = 'openai' | 'cloudflare';
 
 export interface BaseConfig {
   type: ProviderType;
@@ -45,7 +63,7 @@ export interface OpenAIConfig extends BaseConfig {
 }
 
 export interface WorkersAIConfig extends BaseConfig {
-  type: 'workers-ai' | 'cloudflare';
+  type: 'cloudflare';
   accountId?: string;
   gatewayId?: string;
   apiToken?: string;
@@ -79,15 +97,16 @@ export class MastraLLMProvider {
     const { type, context, ...providerConfig } = this.config;
     
     if (!type) {
-      throw new Error('Provider type is required. Use "openai" or "workers-ai"');
+      throw new Error('Provider type is required. Use "openai" or "cloudflare"');
     }
 
     switch (type.toLowerCase()) {
       case 'openai':
+        trace('Initializing OpenAI provider', { baseURL: (providerConfig as any).baseURL }, this.context);
         this.provider = this.createOpenAIProvider(providerConfig as Omit<OpenAIConfig, 'type' | 'context'>);
         break;
-      case 'workers-ai':
       case 'cloudflare':
+        trace('Initializing Cloudflare provider', { accountId: (providerConfig as any).accountId, gatewayId: (providerConfig as any).gatewayId }, this.context);
         this.provider = this.createWorkersAIProvider(providerConfig as Omit<WorkersAIConfig, 'type' | 'context'>);
         break;
       default:
@@ -115,6 +134,8 @@ export class MastraLLMProvider {
         ...headers
       }
     });
+
+    trace('Created OpenAI-compatible provider', { name: provider?.name ?? 'openai', baseURL }, this.context);
 
     return {
       name: provider?.name ?? 'openai',
@@ -149,7 +170,7 @@ export class MastraLLMProvider {
     const baseURL = this.buildWorkersAIUrl(accountId, gatewayId);
 
     const provider = createOpenAICompatible({
-      name: 'workers-ai',
+      name: 'cloudflare',
       baseURL,
       apiKey: apiToken,
       headers: {
@@ -159,8 +180,10 @@ export class MastraLLMProvider {
       }
     });
 
+    trace('Created Cloudflare-compatible provider', { name: provider?.name ?? 'cloudflare', baseURL }, this.context);
+
     return {
-      name: provider?.name ?? 'workers-ai',
+      name: provider?.name ?? 'cloudflare',
       baseURL,
       apiKey: apiToken,
       headers: {
@@ -173,7 +196,7 @@ export class MastraLLMProvider {
   }
 
   private buildWorkersAIUrl(accountId: string, gatewayId: string): string {
-    return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/workers-ai/v1`;
+    return `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/cloudflare/v1`;
   }
 
   /**
@@ -181,6 +204,7 @@ export class MastraLLMProvider {
    */
   public setContext(context: any): this {
     this.context = context;
+    trace('Context updated for provider', { hasEnv: !!(context?.env) }, context);
     return this;
   }
 
@@ -253,8 +277,8 @@ export const MastraProviders = {
   /**
    * Create Cloudflare Workers AI provider
    */
-  workersai: (config: Omit<WorkersAIConfig, 'type'> = {}): MastraLLMProvider => 
-    new MastraLLMProvider({ type: 'workers-ai', ...config }),
+  cloudflare: (config: Omit<WorkersAIConfig, 'type'> = {}): MastraLLMProvider => 
+    new MastraLLMProvider({ type: 'cloudflare', ...config }),
   
   /**
    * Auto-detect provider from context environment variables
@@ -262,6 +286,7 @@ export const MastraProviders = {
   auto: (ctxOrConfig?: any): MastraLLMProvider => {
     // If explicit config object passed, use it
     if (ctxOrConfig && typeof ctxOrConfig === 'object' && 'type' in ctxOrConfig) {
+      trace('Auto: using explicit config', { type: (ctxOrConfig as MastraConfig).type });
       return MastraProviders.create(ctxOrConfig as MastraConfig);
     }
 
@@ -272,21 +297,25 @@ export const MastraProviders = {
 
     // Check for OpenAI credentials in provided context/env
     if (maybeEnv && (maybeEnv.OPENAI_API_KEY || maybeEnv.openai_api_key)) {
+      trace('Auto-detect: found OpenAI credentials in context');
       return MastraProviders.openai();
     }
 
     // Check for Cloudflare Workers AI credentials in provided context/env
     if (maybeEnv && (maybeEnv.CLOUDFLARE_ACCOUNT_ID || maybeEnv.CLOUDFLARE_GATEWAY_ID || maybeEnv.CLOUDFLARE_API_TOKEN)) {
-      return MastraProviders.workersai();
+      trace('Auto-detect: found Cloudflare credentials in context');
+      return MastraProviders.cloudflare();
     }
 
     // Fallback to process/global env checks
     if (getEnv('OPENAI_API_KEY')) {
+      trace('Auto-detect: found OpenAI credentials in process/global env');
       return MastraProviders.openai();
     }
 
     if (getEnv('CLOUDFLARE_ACCOUNT_ID') && getEnv('CLOUDFLARE_GATEWAY_ID') && getEnv('CLOUDFLARE_API_TOKEN')) {
-      return MastraProviders.workersai();
+      trace('Auto-detect: found Cloudflare credentials in process/global env');
+      return MastraProviders.cloudflare();
     }
 
     throw new Error(
@@ -304,7 +333,7 @@ export const MastraProviders = {
   /**
    * Create provider from Cloudflare Workers context (convenience method)
    */
-  fromContext: (c: any, type: ProviderType = 'workers-ai'): MastraLLMProvider => {
+  fromContext: (c: any, type: ProviderType = 'cloudflare'): MastraLLMProvider => {
     return new MastraLLMProvider({ type, context: c });
   }
 } as const;
@@ -338,7 +367,7 @@ app.post('/chat', async (c: any) => {
   const provider = MastraProviders.fromContext(c);
   
   const agent = new Agent({
-    name: "workers-ai-agent",
+    name: "cloudflare-agent",
     instructions: "You are powered by Cloudflare Workers AI.",
     model: provider.get()(Models.WorkersAI.LLAMA_3_1_8B)
   });
@@ -363,7 +392,7 @@ app.post('/auto-chat', async (c: any) => {
 
 // Method 3: Explicit configuration with context
 app.post('/explicit-chat', async (c: any) => {
-  const provider = MastraProviders.workersai({ 
+  const provider = MastraProviders.cloudflare({ 
     context: c,
     // Optional: override specific values
     headers: {
@@ -372,7 +401,7 @@ app.post('/explicit-chat', async (c: any) => {
   });
   
   const agent = new Agent({
-    name: "explicit-agent",
+    name: "explicit-cloudflare-agent",
     instructions: "You are configured explicitly.",
     model: provider.get()(Models.WorkersAI.MISTRAL_7B)
   });

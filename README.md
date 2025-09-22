@@ -155,23 +155,23 @@ Notes
 - When running with `wrangler dev`, the default host/port is `http://127.0.0.1:8787`.
 - Ensure environment variables are set (Cloudflare or OpenAI credentials) for the provider you want to use.
 
-const workersProvider = MastraProviders.workersai();
+const cloudflareProvider = MastraProviders.cloudflare();
 
 const helloAgent = new Agent({
-name: "workers-ai-agent",
-instructions: "You are powered by Cloudflare Workers AI.",
-model: workersProvider.get()("@cf/meta/llama-3.1-8b-instruct")
+  name: "cloudflare-agent",
+  instructions: "You are powered by Cloudflare Workers AI.",
+  model: cloudflareProvider.get()("@cf/meta/llama-3.1-8b-instruct")
 });
 
 // Method 2: Explicit configuration
-const workersProviderExplicit = MastraProviders.workersai({
+const workersProviderExplicit = MastraProviders.cloudflare({
 accountId: 'your-account-id',
 gatewayId: 'your-gateway-id',
 apiToken: 'your-api-token'
 });
 
 const helloAgent2 = new Agent({
-name: "workers-ai-agent-2",
+name: "cloudflare-agent-2",
 instructions: "You are powered by Cloudflare Workers AI.",
 model: workersProviderExplicit.get()("@cf/meta/llama-3.1-8b-instruct")
 });
@@ -195,7 +195,7 @@ model: autoProvider.get()("gpt-4o-mini") // or "@cf/meta/llama-3.1-8b-instruct"
 });
 
 // Method 5: Multiple agents with different models
-const provider = MastraProviders.workersai();
+const provider = MastraProviders.cloudflare();
 
 const agents = [
 new Agent({
