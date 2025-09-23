@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import type { Context } from 'hono';
-import Agent from './mastra/Agent';
 import { MastraProviders, Models } from './providers';
 
 // Simple trace helper that integrates with Hono context logs when available
