@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 # Development configuration
 [env.development]
 # Enable local development with better logging
-vars = { ENVIRONMENT = "development", LOG_LEVEL = "info" }
+vars = { ENVIRONMENT = "development", LOG_LEVEL = "debug" }
 
 # Production configuration  
 [env.production]
