@@ -11,15 +11,15 @@
     },
     "dependencies": {
         "@ai-sdk/openai-compatible": "^1.0.18",
-        "@mastra/core": "^0.17.1",
+        "@mastra/core": "^0.18.0",
         "hono": "^4.6.0"
     },
     "devDependencies": {
-        "@cloudflare/vitest-pool-workers": "^0.9.3",
-        "@cloudflare/workers-types": "^4.20250921.0",
+        "@cloudflare/vitest-pool-workers": "^0.9.4",
+        "@cloudflare/workers-types": "^4.20250924.0",
         "@types/react": "^19.1.13",
         "typescript": "^5.9.2",
         "vitest": "^3.2.4",
-        "wrangler": "^4.38.0"
+        "wrangler": "^4.39.0"
     }
 }
