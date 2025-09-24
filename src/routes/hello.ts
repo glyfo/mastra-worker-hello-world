@@ -1,14 +1,12 @@
-// src/routes/hello.ts
 import type { Context } from "hono";
-import { createMastraAgent } from "../lib/agent";
+import { SimpleAgent } from "../lib/agent";
 import { Models } from "../providers";
-import { extractText, trace } from "../lib/utils";
 
 export async function hello(c: Context) {
   const body = await c.req.json().catch(() => ({} as { name?: string }));
   const name = body.name ?? "World";
 
-  const agent = await createMastraAgent(c, {
+  const agent = new SimpleAgent(c, {
     provider: "auto",
     model: Models.WorkersAI.LLAMA_3_1_8B,
     name: "hello-agent",
@@ -17,16 +15,9 @@ export async function hello(c: Context) {
   });
 
   try {
-    // v2 API (array of messages)
-    const result = await agent.generateVNext([
-      { role: "system", content: "You are a friendly greeter." },
-      { role: "user", content: `Say hello to ${name}` },
-    ]);
-
-    const text = extractText(result);
-    return c.json({ greeting: text, name });
+    const greeting = await agent.generate(`Say hello to ${name}`);
+    return c.json({ greeting, name });
   } catch (err: any) {
-    trace("hello route error", { message: err?.message });
     return c.json({ error: err?.message ?? "Generation failed" }, 500);
   }
 }
