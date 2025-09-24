@@ -38,25 +38,26 @@ export class SimpleAgent {
     this.agent = new Agent(cfg);
   }
 
-  /** One-shot text generation (v5): try generateVNext non-stream, then streamVNext */
-  async generate(prompt: string): Promise<string> {
+  /** One-shot text generation (v5): pass a STRING to generateVNext; fallback to streamVNext */
+  async generateVNext(prompt: string): Promise<string> {
     const a: any = this.agent;
 
+    // v5 non-stream: STRING, not object
     if (typeof a.generateVNext === "function") {
-      const res = await a.generateVNext({ prompt, stream: false });
+      const res = await a.generateVNext(prompt);
       return extractText(res);
     }
 
+    // v5 streaming: MESSAGES ARRAY
     if (typeof a.streamVNext === "function") {
       const stream = await a.streamVNext([{ role: "user", content: prompt } as VNextMessage]);
       let out = "";
       for await (const ev of stream) {
-        const piece =
+        out +=
           (typeof ev?.delta === "string" && ev.delta) ||
           (typeof ev?.text === "string" && ev.text) ||
           (typeof ev?.content === "string" && ev.content) ||
           "";
-        out += piece;
       }
       return out;
     }
@@ -64,7 +65,7 @@ export class SimpleAgent {
     throw new Error("This agent requires v5 methods (generateVNext/streamVNext).");
   }
 
-  /** Chat-style (v5): pass messages to vNext; fallback to streamVNext if needed */
+  /** Chat-style (v5): pass a MESSAGES ARRAY to vNext; fallback to streamVNext */
   async chat(messages: string | VNextMessage[]): Promise<string> {
     const a: any = this.agent;
     const vnextMsgs: VNextMessage[] =
@@ -79,12 +80,11 @@ export class SimpleAgent {
       const stream = await a.streamVNext(vnextMsgs);
       let out = "";
       for await (const ev of stream) {
-        const piece =
+        out +=
           (typeof ev?.delta === "string" && ev.delta) ||
           (typeof ev?.text === "string" && ev.text) ||
           (typeof ev?.content === "string" && ev.content) ||
           "";
-        out += piece;
       }
       return out;
     }
