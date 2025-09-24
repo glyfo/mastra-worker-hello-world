@@ -10,7 +10,7 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@ai-sdk/openai-compatible": "^1.0.18",
+        "@ai-sdk/openai": "^2.0.34",
         "@mastra/core": "^0.18.0",
         "hono": "^4.6.0"
     },

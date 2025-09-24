@@ -1,5 +1,5 @@
 // src/providers/index.ts
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { createOpenAI } from '@ai-sdk/openai';
 
 /** ---------- tiny helpers ---------- */
 const envOf = (ctx?: any) =>
@@ -21,37 +21,29 @@ export const Models = {
   },
 } as const;
 
-/** shape returned by provider getters */
-type ProviderCallable = (modelId?: string) => {
-  name: string;
-  baseURL: string;
-  apiKey: string;
-  headers: Record<string, string>;
-  model?: string;
-};
+/**
+ * v5 provider shape: returns a callable that, when given a model id,
+ * yields an AI SDK v5 model function (what Mastra vNext expects).
+ */
+type V5Provider = (modelId?: string) => any;
 
-/** minimal provider wrapper */
-function makeProvider(
-  name: 'openai' | 'cloudflare',
+/** Build an AI SDK v5 client pinned to a baseURL/apiKey/headers */
+function makeV5Provider(
   baseURL: string,
   apiKey: string,
   headers: Record<string, string> = {}
-): (modelId?: string) => any {
-  createOpenAICompatible({ name, baseURL, apiKey, headers: { 'Content-Type': 'application/json', ...headers } });
-
-  const core = { name, baseURL, apiKey, headers: { 'Content-Type': 'application/json', ...headers } };
-
-  // ⬇⬇⬇ set BOTH `model` and `id` so Mastra can read modelId
-  return (modelId?: string) => ({
-    ...core,
-    model: modelId,
-    id: modelId,
+): V5Provider {
+  const openai = createOpenAI({
+    baseURL,
+    apiKey,
+    headers: { 'Content-Type': 'application/json', ...headers },
   });
+  // v5: returning the *callable* that Mastra can invoke: openai(modelId)
+  return (modelId?: string) => openai(modelId!);
 }
 
-
 /** ---------- concrete providers (AI Gateway required) ---------- */
-function openaiViaGateway(ctx?: any): ProviderCallable {
+function openaiViaGateway(ctx?: any): V5Provider {
   const e = envOf(ctx);
   const apiKey     = e.OPENAI_API_KEY;
   const accountId  = e.CLOUDFLARE_ACCOUNT_ID;
@@ -62,10 +54,13 @@ function openaiViaGateway(ctx?: any): ProviderCallable {
   need(gatewayId, 'CLOUDFLARE_GATEWAY_ID is required to use AI Gateway');
 
   const baseURL = gwBase(accountId!, gatewayId!, 'openai');
-  return makeProvider('openai', baseURL, apiKey!, { 'CF-AIG-Source': 'mastra-agent' });
+  return makeV5Provider(baseURL, apiKey!, { 'CF-AIG-Source': 'mastra-agent' });
 }
 
-function workersAIViaGateway(ctx?: any, cfg?: { accountId?: string; gatewayId?: string; apiToken?: string }): ProviderCallable {
+function workersAIViaGateway(
+  ctx?: any,
+  cfg?: { accountId?: string; gatewayId?: string; apiToken?: string }
+): V5Provider {
   const e = envOf(ctx);
   const accountId = cfg?.accountId ?? e.CLOUDFLARE_ACCOUNT_ID;
   const gatewayId = cfg?.gatewayId ?? e.CLOUDFLARE_GATEWAY_ID;
@@ -76,15 +71,15 @@ function workersAIViaGateway(ctx?: any, cfg?: { accountId?: string; gatewayId?: 
   need(apiToken,  'CLOUDFLARE_API_TOKEN is required for Workers AI via Gateway');
 
   const baseURL = gwBase(accountId!, gatewayId!, 'cloudflare');
-  return makeProvider('cloudflare', baseURL, apiToken!, { 'CF-AIG-Source': 'mastra-agent' });
+  return makeV5Provider(baseURL, apiToken!, { 'CF-AIG-Source': 'mastra-agent' });
 }
 
 /** ---------- public factory ---------- */
 export const MastraProviders = {
-  /** OpenAI → ALWAYS through AI Gateway */
+  /** OpenAI → ALWAYS through AI Gateway (v5) */
   openai: (config?: { context?: any }) => openaiViaGateway(config?.context),
 
-  /** Workers AI → ALWAYS through AI Gateway */
+  /** Workers AI → ALWAYS through AI Gateway (v5) */
   cloudflare: (config?: { context?: any; accountId?: string; gatewayId?: string; apiToken?: string }) =>
     workersAIViaGateway(config?.context, config),
 
@@ -94,7 +89,6 @@ export const MastraProviders = {
     const hasCF = !!(e.CLOUDFLARE_ACCOUNT_ID && e.CLOUDFLARE_GATEWAY_ID);
     if (hasCF && e.CLOUDFLARE_API_TOKEN) return workersAIViaGateway(ctx);
     if (hasCF && e.OPENAI_API_KEY)       return openaiViaGateway(ctx);
-    // If both missing, be explicit so devs know to add gateway vars
     throw new Error('AI Gateway required: set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_GATEWAY_ID (+ provider creds).');
   },
 } as const;

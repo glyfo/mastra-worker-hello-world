@@ -2,7 +2,7 @@
 import type { Context } from "hono";
 import { Agent } from "@mastra/core";
 import { MastraProviders, Models } from "../providers";
-import { extractText, trace } from "./utils";
+import { extractText } from "./utils";
 
 type AgentOpts = {
   provider?: "cloudflare" | "openai" | "auto";
@@ -10,6 +10,8 @@ type AgentOpts = {
   name?: string;
   instructions?: string;
 };
+
+type VNextMessage = { role: "system" | "user" | "assistant"; content: string };
 
 export class SimpleAgent {
   private agent: Agent;
@@ -24,9 +26,7 @@ export class SimpleAgent {
 
     const modelId = opts.model ?? Models.WorkersAI.LLAMA_3_1_8B;
 
-    // Provider returns an OpenAI-compatible client via our AI Gateway.
-    // Mastra's Agent expects an internal MastraLanguageModel DynamicArgument.
-    // We build a thunk (runtime OK) and cast the whole config to the Agent ctor param type.
+    // With v5 providers, returning () => provider(modelId) yields a v5 model function.
     const modelThunk = () => provider(modelId);
 
     const cfg = {
@@ -38,58 +38,59 @@ export class SimpleAgent {
     this.agent = new Agent(cfg);
   }
 
-  /** One-shot text generation; try vNext (non-stream) then fall back to stream() */
+  /** One-shot text generation (v5): try generateVNext non-stream, then streamVNext */
   async generate(prompt: string): Promise<string> {
-    try {
-      const res = await (this.agent as any).generateVNext?.({ prompt, stream: false });
-      if (res) return extractText(res);
-    } catch (e: any) {
-      if (!String(e?.message || "").includes("streamVNext")) {
-        trace("SimpleAgent.generate vNext error", { message: e?.message });
-      }
+    const a: any = this.agent;
+
+    if (typeof a.generateVNext === "function") {
+      const res = await a.generateVNext({ prompt, stream: false });
+      return extractText(res);
     }
 
-    const stream = await (this.agent as any).stream?.(prompt);
-    if (!stream) throw new Error("Model does not support generateVNext or stream()");
-    let out = "";
-    for await (const chunk of stream) {
-      if (typeof chunk === "string") out += chunk;
-      else if (typeof chunk?.text === "string") out += chunk.text;
-      else if (typeof chunk?.delta === "string") out += chunk.delta;
+    if (typeof a.streamVNext === "function") {
+      const stream = await a.streamVNext([{ role: "user", content: prompt } as VNextMessage]);
+      let out = "";
+      for await (const ev of stream) {
+        const piece =
+          (typeof ev?.delta === "string" && ev.delta) ||
+          (typeof ev?.text === "string" && ev.text) ||
+          (typeof ev?.content === "string" && ev.content) ||
+          "";
+        out += piece;
+      }
+      return out;
     }
-    return out;
+
+    throw new Error("This agent requires v5 methods (generateVNext/streamVNext).");
   }
 
-  /** Chat-style generation; accepts a string or an array of {role, content} */
-  async chat(
-    messages: string | Array<{ role: "system" | "user" | "assistant"; content: string }>
-  ): Promise<string> {
-    try {
-      const res = Array.isArray(messages)
-        ? await (this.agent as any).generateVNext?.(messages)
-        : await (this.agent as any).generateVNext?.(messages);
-      if (res) return extractText(res);
-    } catch (e: any) {
-      if (!String(e?.message || "").includes("streamVNext")) {
-        trace("SimpleAgent.chat vNext error", { message: e?.message });
+  /** Chat-style (v5): pass messages to vNext; fallback to streamVNext if needed */
+  async chat(messages: string | VNextMessage[]): Promise<string> {
+    const a: any = this.agent;
+    const vnextMsgs: VNextMessage[] =
+      typeof messages === "string" ? [{ role: "user", content: messages }] : messages;
+
+    if (typeof a.generateVNext === "function") {
+      const res = await a.generateVNext(vnextMsgs);
+      return extractText(res);
+    }
+
+    if (typeof a.streamVNext === "function") {
+      const stream = await a.streamVNext(vnextMsgs);
+      let out = "";
+      for await (const ev of stream) {
+        const piece =
+          (typeof ev?.delta === "string" && ev.delta) ||
+          (typeof ev?.text === "string" && ev.text) ||
+          (typeof ev?.content === "string" && ev.content) ||
+          "";
+        out += piece;
       }
+      return out;
     }
 
-    // Fallback: stream the last user message (or the string itself)
-    const last =
-      typeof messages === "string"
-        ? messages
-        : [...messages].reverse().find((m) => m.role === "user")?.content ??
-          (Array.isArray(messages) ? messages.at(-1)?.content : "");
-
-    const stream = await (this.agent as any).stream?.(last);
-    if (!stream) throw new Error("Model does not support generateVNext or stream()");
-    let out = "";
-    for await (const chunk of stream) {
-      if (typeof chunk === "string") out += chunk;
-      else if (typeof chunk?.text === "string") out += chunk.text;
-      else if (typeof chunk?.delta === "string") out += chunk.delta;
-    }
-    return out;
+    throw new Error("This agent requires v5 methods (generateVNext/streamVNext).");
   }
 }
+
+export default SimpleAgent;
