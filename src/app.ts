@@ -1,62 +1,19 @@
-import { Hono } from 'hono';
-import type { Context } from 'hono';
-import { MastraProviders, Models } from './providers';
-
-// Simple trace helper that integrates with Hono context logs when available
-function trace(msg: string, data?: any) {
-  const prefix = '[App]';
-  console.info(prefix, msg, data);
-}
-
-// Helper: create an agent using autodetected provider (or explicit config)
-async function createMastraAgent(c: Context, opts: { name?: string; instructions?: string; model?: string } = {}) {
-  trace('createMastraAgent: starting', { opts });
-  const provider = MastraProviders.auto(c);
-  const model = opts.model || Models.WorkersAI.LLAMA_3_1_8B;
-
-  const agent = new Agent({
-    name: opts.name || 'agent',
-    instructions: opts.instructions || 'You are a helpful AI assistant.',
-    model: provider.get()(model)
-  });
-
-  trace('createMastraAgent: created agent', { name: agent.name });
-  return agent;
-}
+import { Hono } from "hono";
+import { health } from "./routes/health";
+import { hello } from "./routes/hello";
+import { trace } from "./lib/trace";
 
 const app = new Hono();
 
-// Simple health check
-app.get('/', (c) => {
-  console.info(`Health check accessed from ${c.req.header('cf-connecting-ip') || 'unknown'} at ${new Date().toISOString()}`);
-  return c.json({ 
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    cf_ray: c.req.header('cf-ray') || 'unknown'
-  });
+// (Optional) minimal error boundary so unhandled errors become JSON
+app.onError((err, c) => {
+  trace("unhandled", { path: c.req.path, err: err?.message });
+  return c.json({ error: "Internal Server Error" }, 500);
 });
 
+// Routes
+app.get("/", health);
+app.post("/hello", hello);
 
-// POST /hello - greeting endpoint
-app.post('/hello', async (c: Context) => {
-  const body = await c.req.json().catch(() => ({}));
-  const name = body.name || 'World';
-
-  try {
-    trace('POST /hello: request received', { name });
-    const agent = await createMastraAgent(c, {
-      name: 'hello-agent',
-      instructions: `You are a friendly greeter. Always respond with enthusiasm and include the person's name.`,
-      model: Models.WorkersAI.LLAMA_3_1_8B
-    });
-
-    const response = await agent.generate(`Say hello to ${name}`);
-    trace('POST /hello: got agent response', { text: response.text });
-    return c.json({ greeting: response.text, name });
-  } catch (err: any) {
-    trace('POST /hello: error', { message: err?.message || String(err) });
-    return c.json({ error: err?.message || String(err) }, 500);
-  }
-});
-
+export { app };
 export default app;
