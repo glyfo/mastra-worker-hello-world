@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { health } from "./routes/health";
 import { hello } from "./routes/hello";
-import { trace } from "./lib/trace";
+import { trace } from "./lib/utils";
 
 const app = new Hono();
 

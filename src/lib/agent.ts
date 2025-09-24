@@ -2,7 +2,7 @@
 import type { Context } from "hono";
 import { Agent } from "@mastra/core";
 import { MastraProviders, Models } from "../providers";
-import { trace } from "./trace";
+import { trace } from "./utils";
 
 type CreateAgentOpts = {
   provider?: "cloudflare" | "openai" | "auto";

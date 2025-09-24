@@ -36,12 +36,19 @@ function makeProvider(
   baseURL: string,
   apiKey: string,
   headers: Record<string, string> = {}
-): ProviderCallable {
-  // create the compatible client (we only reuse connection info here)
+): (modelId?: string) => any {
   createOpenAICompatible({ name, baseURL, apiKey, headers: { 'Content-Type': 'application/json', ...headers } });
+
   const core = { name, baseURL, apiKey, headers: { 'Content-Type': 'application/json', ...headers } };
-  return (modelId?: string) => ({ ...core, model: modelId });
+
+  // ⬇⬇⬇ set BOTH `model` and `id` so Mastra can read modelId
+  return (modelId?: string) => ({
+    ...core,
+    model: modelId,
+    id: modelId,
+  });
 }
+
 
 /** ---------- concrete providers (AI Gateway required) ---------- */
 function openaiViaGateway(ctx?: any): ProviderCallable {

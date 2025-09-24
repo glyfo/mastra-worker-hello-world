@@ -1,28 +1,32 @@
+// src/routes/hello.ts
 import type { Context } from "hono";
 import { createMastraAgent } from "../lib/agent";
 import { Models } from "../providers";
-import { trace } from "../lib/trace";
+import { extractText, trace } from "../lib/utils";
 
 export async function hello(c: Context) {
   const body = await c.req.json().catch(() => ({} as { name?: string }));
-  const name = body.name || "World";
+  const name = body.name ?? "World";
+
+  const agent = await createMastraAgent(c, {
+    provider: "auto",
+    model: Models.WorkersAI.LLAMA_3_1_8B,
+    name: "hello-agent",
+    instructions:
+      "You are a friendly greeter. Always respond with enthusiasm and include the person's name.",
+  });
 
   try {
-    trace("POST /hello: request received", { name });
+    // v2 API (array of messages)
+    const result = await agent.generateVNext([
+      { role: "system", content: "You are a friendly greeter." },
+      { role: "user", content: `Say hello to ${name}` },
+    ]);
 
-    const agent = await createMastraAgent(c, {
-      name: "hello-agent",
-      instructions:
-        "You are a friendly greeter. Always respond with enthusiasm and include the person's name.",
-      model: Models.WorkersAI.LLAMA_3_1_8B,
-    });
-
-    const response = await agent.generate(`Say hello to ${name}`);
-
-    trace("POST /hello: got agent response", { text: response.text });
-    return c.json({ greeting: response.text, name });
+    const text = extractText(result);
+    return c.json({ greeting: text, name });
   } catch (err: any) {
-    trace("POST /hello: error", { message: err?.message ?? String(err) });
-    return c.json({ error: err?.message ?? String(err) }, 500);
+    trace("hello route error", { message: err?.message });
+    return c.json({ error: err?.message ?? "Generation failed" }, 500);
   }
 }
