@@ -5,7 +5,7 @@ import { MastraProviders, Models } from "../providers";
 import { extractText } from "./utils";
 
 type AgentOpts = {
-  provider?: "cloudflare" | "openai" | "auto";
+  provider?: "worker-ai" | "openai" | "auto";
   model?: string;
   name?: string;
   instructions?: string;
@@ -18,7 +18,7 @@ export class SimpleAgent {
 
   constructor(c: Context, opts: AgentOpts = {}) {
     const provider =
-      opts.provider === "cloudflare"
+      opts.provider === "worker-ai"
         ? MastraProviders.cloudflare({ context: c })
         : opts.provider === "openai"
         ? MastraProviders.openai({ context: c })

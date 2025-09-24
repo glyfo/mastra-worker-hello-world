@@ -6,7 +6,7 @@ const envOf = (ctx?: any) =>
   (ctx?.env ?? ctx ?? (typeof process !== 'undefined' ? process.env : {})) as Record<string, string | undefined>;
 
 const need = (cond: any, msg: string) => { if (!cond) throw new Error(msg); };
-const gwBase = (acct: string, gw: string, vendor: 'openai' | 'cloudflare') =>
+const gwBase = (acct: string, gw: string, vendor: 'openai' | 'worker-ai') =>
   `https://gateway.ai.cloudflare.com/v1/${acct}/${gw}/${vendor}/v1`;
 
 /** ---------- model presets ---------- */
@@ -70,7 +70,7 @@ function workersAIViaGateway(
   need(gatewayId, 'CLOUDFLARE_GATEWAY_ID is required');
   need(apiToken,  'CLOUDFLARE_API_TOKEN is required for Workers AI via Gateway');
 
-  const baseURL = gwBase(accountId!, gatewayId!, 'cloudflare');
+  const baseURL = gwBase(accountId!, gatewayId!, 'worker-ai');
   return makeV5Provider(baseURL, apiToken!, { 'CF-AIG-Source': 'mastra-agent' });
 }
 
