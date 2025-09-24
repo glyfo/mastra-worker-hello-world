@@ -1,211 +1,149 @@
-# Mastra Worker Hello World
+# Mastra Worker — Hello World
 
-A minimal Cloudflare Workers + Mastra example that exposes a small Hono-based API to create and interact with AI agents.
+A minimal **Cloudflare Workers + Hono** API that wires **Mastra agents** to either **Cloudflare Workers AI** or **OpenAI**. Run it locally with Wrangler, then deploy in seconds.
 
-This repository is intended as a local development starter demonstrating how to:
+---
 
-- create a provider (OpenAI or Cloudflare Workers AI),
-- create lightweight agents wired to a provider,
-- expose a small HTTP API using Hono to create agents and generate text.
+## Features
 
-> Note: the repository contains a small local `Agent` shim used for development. Replace it with `@mastra/core` when integrating with the production library.
+- ⚙️ Provider helpers (Workers AI / OpenAI / auto-detect)
+- 🤖 Tiny `createMastraAgent()` utility
+- 🌐 Hono routes (`/` health, `/hello` demo)
+- 🧱 Clean file layout & copy-paste cURL tests
+
+src/
+app.ts
+index.ts # export default app.fetch (Workers)
+routes/
+health.ts
+hello.ts
+lib/
+trace.ts # tiny logger
+agent.ts # createMastraAgent()
+providers/ # your MastraProviders + Models
+
+yaml
+Copy code
+
+> If the repo includes a local dev `Agent` shim, swap it to the real **`@mastra/core`** in production.
+
+---
 
 ## Prerequisites
 
-- Wrangler CLI (for Cloudflare Workers): `npm install -g wrangler`
+- Node 18+
+- Wrangler (`npm i -g wrangler`)
+- pnpm (or npm/yarn)
 
-## Environment Variables
+---
 
-Create `.dev.vars` or export the following variables depending on which provider you use.
+## Environment
 
-For Cloudflare Workers AI (recommended during local dev with the gateway):
+Create a `.dev.vars` at the repo root (used by `wrangler dev`) **or** export these as env vars.
 
-```
+**Workers AI (recommended)**
+
+```ini
 CLOUDFLARE_ACCOUNT_ID=your_account_id
 CLOUDFLARE_GATEWAY_ID=your_gateway_id
 CLOUDFLARE_API_TOKEN=your_api_token
-```
+OpenAI (optional)
 
-Project root example
+ini
+Copy code
+OPENAI_API_KEY=sk-...
+If you also test email, add:
 
-```
-Project Root
-├── .dev.vars (Local development)
-│   ├── CLOUDFLARE_ACCOUNT_ID=your_account_id
-│   ├── CLOUDFLARE_GATEWAY_ID=your_gateway_id
-│   ├── CLOUDFLARE_API_TOKEN=your_api_token
-│   └── RESEND_API_KEY=re_your_actual_resend_api_key_here
-```
+ini
+Copy code
+RESEND_API_KEY=re_...
+Install & Run
+bash
+Copy code
+pnpm install
+pnpm dev           # wrangler dev; http://127.0.0.1:8787
+API
+1) Health
+pgsql
+Copy code
+GET /
+→ 200 { status, timestamp, cf_ray }
+2) Hello (demo agent)
+css
+Copy code
+POST /hello
+Body: { "name": "Ada" }
+→ 200 { greeting, name }
+cURL Quickstart
+bash
+Copy code
+# Health
+curl -s http://127.0.0.1:8787/
 
-For OpenAI (alternative):
+# Hello demo
+curl -s -X POST http://127.0.0.1:8787/hello \
+  -H 'content-type: application/json' \
+  -d '{"name":"Lily"}'
+Using Mastra Providers (snippets)
+Adjust imports to match your providers/ module and the real Mastra SDK package name.
 
-```
-OPENAI_API_KEY=sk_...
-```
+ts
+Copy code
+import { Agent } from '@mastra/core';
+import { MastraProviders, Models } from './providers';
 
-## Install
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-## Run locally with Wrangler
-
-Start the worker in development mode:
-
-```bash
-pnpm dev
-```
-
-By default Wrangler serves at `http://127.0.0.1:8787`.
-
-## API Reference
-
-1. Create an agent
-
-POST /agent
-
-Optional JSON body fields:
-
-- `id` — string agent id (defaults to generated id)
-- `name` — human-friendly name
-- `instructions` — agent instructions
-- `model` — model identifier (e.g. `@cf/meta/llama-3.1-8b-instruct`)
-- `config` — provider config object for explicit provider creation
-
-Example:
-
-```bash
-curl -X POST http://127.0.0.1:8787/agent \
-  -H "Content-Type: application/json" \
-  -d '{"id":"lily","name":"Lily","instructions":"You are Lily the assistant.","model":"@cf/meta/llama-3.1-8b-instruct"}'
-```
-
-2. Generate text from an agent
-
-POST /agent/:id/generate
-
-JSON body:
-
-- `prompt` — the prompt to send to the agent
-
-Example:
-
-```bash
-curl -X POST http://127.0.0.1:8787/agent/lily/generate \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"Write a friendly welcome message for a new user."}'
-```
-
-## Notes & Next Steps
-
-- The code currently uses a simple local `Agent` shim at `src/mastra/Agent.ts` that echoes prompts. For real behavior, replace it with the `@mastra/core` agent and ensure the package is installed.
-- `wrangler.toml` points to `src/app.ts` as the Worker entry.
-- Consider adding authentication and persistence for created agents for production use.
-
-If you'd like, I can:
-
-- wire the real `@mastra/core` Agent and provider calls,
-- add a Node `server.ts` for running locally without Wrangler,
-- add validation, rate-limiting, or persistence for agents.
-
-# Resend Email Worker
-
-// ====== USAGE WITH MASTRA AGENTS ======
-
-// Method 1: Environment variables (recommended)
-// .env file:
-// CLOUDFLARE_ACCOUNT_ID=your-account-id
-// CLOUDFLARE_GATEWAY_ID=your-gateway-id  
-// CLOUDFLARE_API_TOKEN=your-api-token
-
-## Running the Worker and Interacting with Agents
-
-This project exposes a small Hono-based API for creating and interacting with Mastra agents.
-
-Start the worker locally with Wrangler:
-
-```bash
-wrangler dev
-```
-
-Endpoints
-
-- `POST /agent` - create an agent. JSON body (optional): `{ "id": "my-agent", "name": "lily", "instructions": "You are helpful.", "model": "@cf/meta/llama-3.1-8b-instruct" }`
-- `POST /agent/:id/generate` - generate text from an agent. JSON body: `{ "prompt": "Hello" }`
-
-Example curl calls
-
-# Create an agent (auto provider or pass explicit config)
-
-curl -X POST http://127.0.0.1:8787/agent \
- -H "Content-Type: application/json" \
- -d '{"id":"lily","name":"Lily","instructions":"You are Lily the assistant.", "model":"@cf/meta/llama-3.1-8b-instruct"}'
-
-# Generate text from the agent
-
-curl -X POST http://127.0.0.1:8787/agent/lily/generate \
- -H "Content-Type: application/json" \
- -d '{"prompt":"Write a friendly hello message for a new user."}'
-
-Notes
-
-- When running with `wrangler dev`, the default host/port is `http://127.0.0.1:8787`.
-- Ensure environment variables are set (Cloudflare or OpenAI credentials) for the provider you want to use.
-
-const cloudflareProvider = MastraProviders.cloudflare();
-
-const helloAgent = new Agent({
-  name: "cloudflare-agent",
-  instructions: "You are powered by Cloudflare Workers AI.",
-  model: cloudflareProvider.get()("@cf/meta/llama-3.1-8b-instruct")
+/** Workers AI (env-based) */
+const cf = MastraProviders.cloudflare();
+const cfAgent = new Agent({
+  name: 'cf-agent',
+  instructions: 'Powered by Cloudflare Workers AI.',
+  model: cf.get()('@cf/meta/llama-3.1-8b-instruct'),
 });
 
-// Method 2: Explicit configuration
-const workersProviderExplicit = MastraProviders.cloudflare({
-accountId: 'your-account-id',
-gatewayId: 'your-gateway-id',
-apiToken: 'your-api-token'
+/** Workers AI (explicit config) */
+const cfExplicit = MastraProviders.cloudflare({
+  accountId: 'your-account-id',
+  gatewayId: 'your-gateway-id',
+  apiToken: 'your-api-token',
+});
+const cfAgent2 = new Agent({
+  name: 'cf-agent-2',
+  instructions: 'Explicit config.',
+  model: cfExplicit.get()('@cf/meta/llama-3.1-8b-instruct'),
 });
 
-const helloAgent2 = new Agent({
-name: "cloudflare-agent-2",
-instructions: "You are powered by Cloudflare Workers AI.",
-model: workersProviderExplicit.get()("@cf/meta/llama-3.1-8b-instruct")
-});
-
-// Method 3: OpenAI
-const openaiProvider = MastraProviders.openai();
-
+/** OpenAI */
+const openai = MastraProviders.openai();
 const openaiAgent = new Agent({
-name: "openai-agent",
-instructions: "You are powered by OpenAI.",
-model: openaiProvider.get()("gpt-4o-mini")
+  name: 'openai-agent',
+  instructions: 'Powered by OpenAI.',
+  model: openai.get()('gpt-4o-mini'),
 });
 
-// Method 4: Auto-detect
-const autoProvider = MastraProviders.auto();
-
+/** Auto-detect */
+const auto = MastraProviders.auto();
 const autoAgent = new Agent({
-name: "auto-agent",
-instructions: "You are powered by the best available AI provider.",
-model: autoProvider.get()("gpt-4o-mini") // or "@cf/meta/llama-3.1-8b-instruct"
+  name: 'auto-agent',
+  instructions: 'Pick the best available provider.',
+  model: auto.get()(Models.WorkersAI.LLAMA_3_1_8B),
 });
+Deploy
+bash
+Copy code
+wrangler deploy
+Ensure your production environment variables are configured in Cloudflare (Dashboard → Workers → Settings → Variables).
 
-// Method 5: Multiple agents with different models
-const provider = MastraProviders.cloudflare();
+Troubleshooting
+401/403 from Workers AI → check CLOUDFLARE_* values and Gateway access.
 
-const agents = [
-new Agent({
-name: "llama-agent",
-instructions: "You are a Llama model.",
-model: provider.get()("@cf/meta/llama-3.1-8b-instruct")
-}),
-new Agent({
-name: "mistral-agent",
-instructions: "You are a Mistral model.",
-model: provider.get()("@cf/mistral/mistral-7b-instruct-v0.1")
-})
-];
+“fetch failed” → confirm wrangler whoami and account id; retry wrangler dev.
+
+Type errors for Agent → install the correct Mastra package and update the import path.
+
+CORS (browser clients) → add Hono CORS middleware.
+
+Nothing responds → confirm index.ts exports default app.fetch.
+
+License
+MIT — use freely for prototypes and demos.
+```
