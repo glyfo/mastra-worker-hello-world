@@ -6,6 +6,7 @@ import {
   Env,
   Errors,
   cfGatewayBase,
+  Models, // re-exported below
 } from "./types";
 
 /** Re-export models so consumers can `import { Models } from "../providers"` */
@@ -25,24 +26,29 @@ const need = (cond: any, msg: string) => {
 /** v5 provider type used by Mastra */
 export type V5Provider = (modelId?: string) => any;
 
-/** Build an AI SDK v5 client pinned to a baseURL/apiKey/headers */
+/**
+ * Build an AI SDK v5 client pinned to a baseURL/apiKey/headers.
+ * IMPORTANT: we return the Chat Completions client explicitly to avoid hitting /v1/responses.
+ */
 function makeV5Provider(
   baseURL: string,
   apiKey: string,
   extraHeaders: Record<string, string> = {}
 ): V5Provider {
   const openaiCompat = createOpenAI({
-    baseURL,
-    apiKey,
+    baseURL,                // MUST end with '/v1/' -> ensured by cfGatewayBase()
+    apiKey,                 // Bearer token (OpenAI key or CF API token)
     headers: { ...Headers.JSON, ...extraHeaders },
   });
-  return (modelId?: string) => openaiCompat(modelId!);
+
+  // Force OpenAI-compatible Chat Completions endpoint: /v1/chat/completions
+  return (modelId?: string) => openaiCompat.chat(modelId!);
 }
 
 /** ---------- concrete providers (AI Gateway required) ---------- */
 function openaiViaGateway(ctx?: any): V5Provider {
   const e = envOf(ctx);
-  const apiKey = e[Env.OPENAI_API_KEY];
+  const apiKey    = e[Env.OPENAI_API_KEY];
   const accountId = e[Env.CF_ACCOUNT_ID];
   const gatewayId = e[Env.CF_GATEWAY_ID];
 
@@ -50,6 +56,7 @@ function openaiViaGateway(ctx?: any): V5Provider {
   need(accountId, Errors.CF_ACCOUNT_REQUIRED);
   need(gatewayId, Errors.CF_GATEWAY_REQUIRED);
 
+  // Produces: https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/openai/v1/
   const baseURL = cfGatewayBase(accountId!, gatewayId!, Vendors.OPENAI);
   return makeV5Provider(baseURL, apiKey!, Headers.Source);
 }
@@ -67,15 +74,16 @@ function workersAIViaGateway(
   need(gatewayId, Errors.CF_GATEWAY_REQUIRED);
   need(apiToken && apiToken !== "dummy", Errors.CF_TOKEN_REQUIRED);
 
+  // Produces: https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/workers-ai/v1/
   const baseURL = cfGatewayBase(accountId!, gatewayId!, Vendors.WORKERS_AI);
   return makeV5Provider(baseURL, apiToken!, Headers.Source);
 }
 
 /** ---------- public factory (no auto) ---------- */
 export const MastraProviders = {
-  openai:   (config?: { context?: any }) => openaiViaGateway(config?.context),
-  workersai:(config?: { context?: any; accountId?: string; gatewayId?: string; apiToken?: string }) =>
-              workersAIViaGateway(config?.context, config),
+  openai:    (config?: { context?: any }) => openaiViaGateway(config?.context),
+  workersai: (config?: { context?: any; accountId?: string; gatewayId?: string; apiToken?: string }) =>
+               workersAIViaGateway(config?.context, config),
 } as const;
 
 export default MastraProviders;
