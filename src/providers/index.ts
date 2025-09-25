@@ -12,7 +12,7 @@ const need = (cond: any, msg: string) => {
   if (!cond) throw new Error(msg);
 };
 
-const gwBase = (acct: string, gw: string, vendor: "openai" | "worker-ai") =>
+const gwBase = (acct: string, gw: string, vendor: "openai" | "workers-ai") =>
   `https://gateway.ai.cloudflare.com/v1/${acct}/${gw}/${vendor}/v1`;
 
 /** ---------- model presets ---------- */
@@ -75,7 +75,7 @@ function workersAIViaGateway(
   need(gatewayId, "CLOUDFLARE_GATEWAY_ID is required");
   need(apiToken, "CLOUDFLARE_API_TOKEN is required for Workers AI via Gateway");
 
-  const baseURL = gwBase(accountId!, gatewayId!, "worker-ai");
+  const baseURL = gwBase(accountId!, gatewayId!, "workers-ai");
   return makeV5Provider(baseURL, apiToken!, { "CF-AIG-Source": "mastra-agent" });
 }
 
@@ -85,7 +85,7 @@ export const MastraProviders = {
   openai: (config?: { context?: any }) => openaiViaGateway(config?.context),
 
   /** Workers AI → ALWAYS through Cloudflare AI Gateway (v5) */
-  workerai: (config?: { context?: any; accountId?: string; gatewayId?: string; apiToken?: string }) =>
+  workersai: (config?: { context?: any; accountId?: string; gatewayId?: string; apiToken?: string }) =>
     workersAIViaGateway(config?.context, config),
 } as const;
 

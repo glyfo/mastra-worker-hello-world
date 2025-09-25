@@ -4,7 +4,7 @@ import { Agent } from "@mastra/core";
 import { MastraProviders, Models } from "../providers";
 import { extractText } from "./utils";
 
-type ProviderKind = "worker-ai" | "openai";
+type ProviderKind = "workers-ai" | "openai";
 
 type AgentOpts = {
   provider?: ProviderKind;   // only "worker-ai" or "openai"
@@ -19,12 +19,12 @@ export class SimpleAgent {
   private agent: Agent;
 
   constructor(c: Context, opts: AgentOpts = {}) {
-    const providerKind: ProviderKind = opts.provider ?? "worker-ai";
+    const providerKind: ProviderKind = opts.provider ?? "workers-ai";
 
     // Build the Mastra v5 provider (callable) from our factory
     const provider =
-      providerKind === "worker-ai"
-        ? MastraProviders.workerai({ context: c }) // Workers AI via CF AI Gateway
+      providerKind === "workers-ai"
+        ? MastraProviders.workersai({ context: c }) // Workers AI via CF AI Gateway
         : MastraProviders.openai({ context: c });     // OpenAI via CF AI Gateway
 
     if (typeof provider !== "function") {

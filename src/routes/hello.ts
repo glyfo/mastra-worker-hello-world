@@ -8,7 +8,7 @@ export async function hello(c: Context) {
   const name = body.name ?? "World";
 
   const agent = new SimpleAgent(c, {
-    provider: "worker-ai", // uses your v5 providers via AI Gateway
+    provider: "workers-ai", // uses your v5 providers via AI Gateway
     model: Models.WorkersAI.LLAMA_3_1_8B,
     name: "hello-agent",
     instructions:
