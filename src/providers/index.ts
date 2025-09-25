@@ -9,43 +9,40 @@ import {
   Models, // re-exported below
 } from "./types";
 
-/** Re-export models so consumers can `import { Models } from "../providers"` */
 export { Models } from "./types";
 
-/** ---------- tiny helpers ---------- */
+/** Helpers */
 const envOf = (ctx?: any) =>
-  (ctx?.env ?? ctx ?? (typeof process !== "undefined" ? process.env : {})) as Record<
-    string,
-    string | undefined
-  >;
+  (ctx?.env ?? ctx ?? (typeof process !== "undefined" ? process.env : {})) as Record<string, string | undefined>;
+const need = (cond: any, msg: string) => { if (!cond) throw new Error(msg); };
 
-const need = (cond: any, msg: string) => {
-  if (!cond) throw new Error(msg);
-};
-
-/** v5 provider type used by Mastra */
+/** v5 provider type */
 export type V5Provider = (modelId?: string) => any;
 
 /**
- * Build an AI SDK v5 client pinned to a baseURL/apiKey/headers.
- * IMPORTANT: we return the Chat Completions client explicitly to avoid hitting /v1/responses.
+ * Build an AI SDK v5 client pinned to baseURL/apiKey/headers.
+ * We explicitly set Authorization: Bearer <apiKey> and force Chat Completions.
  */
 function makeV5Provider(
-  baseURL: string,
-  apiKey: string,
+  baseURL: string,          // MUST end in '/v1/' (types.cfGatewayBase does this)
+  apiKey: string,           // OPENAI_API_KEY or CLOUDFLARE_API_TOKEN
   extraHeaders: Record<string, string> = {}
 ): V5Provider {
   const openaiCompat = createOpenAI({
-    baseURL,                // MUST end with '/v1/' -> ensured by cfGatewayBase()
-    apiKey,                 // Bearer token (OpenAI key or CF API token)
-    headers: { ...Headers.JSON, ...extraHeaders },
+    baseURL,
+    apiKey, // the SDK also sets Authorization, but we set it explicitly too (belt & suspenders)
+    headers: {
+      ...Headers.JSON,
+      ...extraHeaders,
+      Authorization: `Bearer ${apiKey}`, // <— Explicit Bearer header
+    },
   });
 
-  // Force OpenAI-compatible Chat Completions endpoint: /v1/chat/completions
+  // Always use the OpenAI-compatible Chat Completions path: /v1/chat/completions
   return (modelId?: string) => openaiCompat.chat(modelId!);
 }
 
-/** ---------- concrete providers (AI Gateway required) ---------- */
+/** ---------- OpenAI via Gateway ---------- */
 function openaiViaGateway(ctx?: any): V5Provider {
   const e = envOf(ctx);
   const apiKey    = e[Env.OPENAI_API_KEY];
@@ -56,11 +53,11 @@ function openaiViaGateway(ctx?: any): V5Provider {
   need(accountId, Errors.CF_ACCOUNT_REQUIRED);
   need(gatewayId, Errors.CF_GATEWAY_REQUIRED);
 
-  // Produces: https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/openai/v1/
-  const baseURL = cfGatewayBase(accountId!, gatewayId!, Vendors.OPENAI);
+  const baseURL = cfGatewayBase(accountId!, gatewayId!, Vendors.OPENAI); // .../openai/v1/
   return makeV5Provider(baseURL, apiKey!, Headers.Source);
 }
 
+/** ---------- Workers AI via Gateway ---------- */
 function workersAIViaGateway(
   ctx?: any,
   cfg?: { accountId?: string; gatewayId?: string; apiToken?: string }
@@ -74,12 +71,11 @@ function workersAIViaGateway(
   need(gatewayId, Errors.CF_GATEWAY_REQUIRED);
   need(apiToken && apiToken !== "dummy", Errors.CF_TOKEN_REQUIRED);
 
-  // Produces: https://gateway.ai.cloudflare.com/v1/<acct>/<gw>/workers-ai/v1/
-  const baseURL = cfGatewayBase(accountId!, gatewayId!, Vendors.WORKERS_AI);
+  const baseURL = cfGatewayBase(accountId!, gatewayId!, Vendors.WORKERS_AI); // .../workers-ai/v1/
   return makeV5Provider(baseURL, apiToken!, Headers.Source);
 }
 
-/** ---------- public factory (no auto) ---------- */
+/** Public factory (no auto) */
 export const MastraProviders = {
   openai:    (config?: { context?: any }) => openaiViaGateway(config?.context),
   workersai: (config?: { context?: any; accountId?: string; gatewayId?: string; apiToken?: string }) =>
