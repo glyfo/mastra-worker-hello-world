@@ -89,10 +89,23 @@ trace("[agent:ready]", {
   async generateVNext(prompt: string): Promise<string> {
     const a: any = this.agent;
 
+      trace("[agent:generateVNext:start]", {
+    promptPreview: String(prompt).slice(0, 80),
+    hasGenerateVNext: typeof a?.generateVNext === "function"
+  });
+
     if (typeof a.generateVNext === "function") {
       // Default Mastra format
       const res = await a.generateVNext(prompt,); // v5 non-stream accepts string
-      return extractText(res);
+      const out = extractText(res);
+      // end trace (success)
+      trace("[agent:generateVNext:end]", {
+        ok: true,
+        textPreview: out.slice(0, 80),
+      });
+
+      return out;
+
     }
 
     throw new Error("This agent requires v5 methods (generateVNext/streamVNext).");
