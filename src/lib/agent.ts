@@ -86,20 +86,20 @@ trace("[agent:ready]", {
   }
 
   /** One-shot text generation (v5): pass a STRING to generateVNext; fallback to streamVNext */
-  async generateVNext(prompt: string): Promise<string> {
+  async generate(prompt: string): Promise<string> {
     const a: any = this.agent;
 
-      trace("[agent:generateVNext:start]", {
+      trace("[agent:generate:start]", {
     promptPreview: String(prompt).slice(0, 80),
-    hasGenerateVNext: typeof a?.generateVNext === "function"
+    hasgenerate: typeof a?.generate === "function"
   });
 
-    if (typeof a.generateVNext === "function") {
+    if (typeof a.generate === "function") {
       // Default Mastra format
-      const res = await a.generateVNext(prompt,); // v5 non-stream accepts string
+      const res = await a.generate(prompt,); // generate // v5 non-stream accepts string
       const out = extractText(res);
       // end trace (success)
-      trace("[agent:generateVNext:end]", {
+      trace("[agent:generate:end]", {
         ok: true,
         textPreview: out.slice(0, 80),
       });
