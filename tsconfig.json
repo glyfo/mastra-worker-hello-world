@@ -3,55 +3,48 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/emails/*": ["src/emails/*"]
+      "@agents/*": ["src/agents/*"],
+      "@/emails/*": ["src/emails/*"],
+      "@/routes/*": ["src/routes/*"],
+      "@/lib/*": ["src/lib/*"]
     },
+
     "target": "ES2022",
     "lib": ["ES2022", "WebWorker"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": [
-      "@cloudflare/workers-types",
-      "@types/react"
-    ],
+
+    "types": ["@cloudflare/workers-types", "@types/react"],
+
     "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": false,
-    "declaration": false,
-    "declarationMap": false,
-    "sourceMap": false,
-    "outDir": "./dist",
-    "removeComments": true,
-    "noEmit": true,
-    "importHelpers": false,
-    "downlevelIteration": false,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": false,
-    "noImplicitOverride": false,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "exactOptionalPropertyTypes": false,
+    "useUnknownInCatchVariables": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "forceConsistentCasingInFileNames": true,
+
+    "allowJs": true,
+    "checkJs": false,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+
     "skipLibCheck": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": false
+
+    "removeComments": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": false
   },
-  "include": [
-    "src/**/*",
-    "src/emails/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".wrangler",
-    "wrangler.toml"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", ".wrangler", "wrangler.toml"]
 }

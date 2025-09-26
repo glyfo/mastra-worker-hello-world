@@ -15,7 +15,7 @@ type AgentOpts = {
 
 type VNextMessage = { role: "system" | "user" | "assistant"; content: string };
 
-export class SimpleAgent {
+export class MastraAgent {
   private agent: Agent;
 
   constructor(c: Context, opts: AgentOpts = {}) {
@@ -108,4 +108,4 @@ export class SimpleAgent {
   }
 }
 
-export default SimpleAgent;
+export default MastraAgent;
