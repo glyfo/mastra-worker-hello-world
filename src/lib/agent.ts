@@ -2,7 +2,7 @@
 import type { Context } from "hono";
 import { Agent } from "@mastra/core";
 import { MastraProviders, Models } from "../providers";
-import { extractText } from "./utils";
+import { extractText,trace } from "./utils";
 
 type ProviderKind = "workers-ai" | "openai";
 
@@ -53,6 +53,36 @@ export class MastraAgent {
     } as unknown as ConstructorParameters<typeof Agent>[0];
 
     this.agent = new Agent(cfg);
+
+const a: any = this.agent; // Mastra Agent instance
+const cfRay = c.req.raw.headers.get("cf-ray");
+
+trace("[agent:ready]", {
+  // existing
+  providerKind,
+  modelId,
+  name: cfg.name,
+
+  // extra context
+  cfRay,
+  modelIsFunction: typeof (cfg as any).model === "function",
+
+  // what methods this Agent actually exposes (helps debug SDK version)
+  hasGenerateVNext: typeof a?.generateVNext === "function",
+  hasStreamVNext: typeof a?.streamVNext === "function",
+  hasGenerate: typeof a?.generate === "function",
+  hasChat: typeof a?.chat === "function",
+
+  // env presence (Workers bindings only; no secrets logged)
+  env: {
+    has_CF_ACCOUNT: !!(c as any).env?.CLOUDFLARE_ACCOUNT_ID,
+    has_CF_GATEWAY: !!(c as any).env?.CLOUDFLARE_GATEWAY_ID,
+    has_CF_TOKEN:   !!(c as any).env?.CLOUDFLARE_API_TOKEN,
+    has_OPENAI:     !!(c as any).env?.OPENAI_API_KEY,
+  },
+});
+
+
   }
 
   /** One-shot text generation (v5): pass a STRING to generateVNext; fallback to streamVNext */
@@ -60,21 +90,9 @@ export class MastraAgent {
     const a: any = this.agent;
 
     if (typeof a.generateVNext === "function") {
-      const res = await a.generateVNext(prompt); // v5 non-stream accepts string
+      // Default Mastra format
+      const res = await a.generateVNext(prompt,); // v5 non-stream accepts string
       return extractText(res);
-    }
-
-    if (typeof a.streamVNext === "function") {
-      const stream = await a.streamVNext([{ role: "user", content: prompt } as VNextMessage]);
-      let out = "";
-      for await (const ev of stream) {
-        out +=
-          (typeof ev?.delta === "string" && ev.delta) ||
-          (typeof ev?.text === "string" && ev.text) ||
-          (typeof ev?.content === "string" && ev.content) ||
-          "";
-      }
-      return out;
     }
 
     throw new Error("This agent requires v5 methods (generateVNext/streamVNext).");

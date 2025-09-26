@@ -4,15 +4,6 @@ main = "src/app.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
-# Development configuration
-[env.development]
-# Enable local development with better logging
-vars = { ENVIRONMENT = "development", LOG_LEVEL = "debug" }
-
-# Production configuration  
-[env.production]
-vars = { ENVIRONMENT = "production", LOG_LEVEL = "info" }
-
 # Observability configuration
 [observability]
 enabled = true

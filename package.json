@@ -7,7 +7,8 @@
         "dev": "wrangler dev",
         "deploy": "wrangler deploy",
         "start": "wrangler dev",
-        "test": "vitest"
+        "test": "vitest",
+        "tail": "pnpm exec wrangler tail"
     },
     "dependencies": {
         "@ai-sdk/openai": "^2.0.34",

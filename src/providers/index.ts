@@ -6,7 +6,6 @@ import {
   Env,
   Errors,
   cfGatewayBase,
-  Models, // re-exported below
 } from "./types";
 
 export { Models } from "./types";
