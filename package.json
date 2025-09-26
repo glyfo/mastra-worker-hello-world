@@ -11,16 +11,16 @@
         "tail": "pnpm exec wrangler tail"
     },
     "dependencies": {
-        "@ai-sdk/openai": "^2.0.34",
+        "@ai-sdk/openai": "^2.0.36",
         "@mastra/core": "^0.18.0",
         "hono": "^4.6.0"
     },
     "devDependencies": {
-        "@cloudflare/vitest-pool-workers": "^0.9.4",
-        "@cloudflare/workers-types": "^4.20250924.0",
+        "@cloudflare/vitest-pool-workers": "^0.9.7",
+        "@cloudflare/workers-types": "^4.20250926.0",
         "@types/react": "^19.1.13",
         "typescript": "^5.9.2",
         "vitest": "^3.2.4",
-        "wrangler": "^4.39.0"
+        "wrangler": "^4.40.2"
     }
 }
