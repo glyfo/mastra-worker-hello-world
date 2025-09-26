@@ -96,7 +96,7 @@ trace("[agent:ready]", {
 
     if (typeof a.generateVNext === "function") {
       // Default Mastra format
-      const res = await a.generateVNext(prompt,); // v5 non-stream accepts string
+      const res = await a.generateVNext(prompt,{  format: "aisdk" }); // v5 non-stream accepts string
       const out = extractText(res);
       // end trace (success)
       trace("[agent:generateVNext:end]", {
