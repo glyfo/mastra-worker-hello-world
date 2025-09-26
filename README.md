@@ -1,149 +1,153 @@
 # Mastra Worker — Hello World
 
-A minimal **Cloudflare Workers + Hono** API that wires **Mastra agents** to either **Cloudflare Workers AI** or **OpenAI**. Run it locally with Wrangler, then deploy in seconds.
+Minimal **Cloudflare Workers + Hono** API wired to **Mastra agents** (Workers AI or OpenAI), routed through **Cloudflare AI Gateway**. Fast local dev with Wrangler; one‑command deploy.
 
 ---
 
-## Features
+## Quick Start
 
-- ⚙️ Provider helpers (Workers AI / OpenAI / auto-detect)
-- 🤖 Tiny `createMastraAgent()` utility
-- 🌐 Hono routes (`/` health, `/hello` demo)
-- 🧱 Clean file layout & copy-paste cURL tests
+```bash
+pnpm i
+pnpm dev        # http://127.0.0.1:8787
+```
 
-src/
-app.ts
-index.ts # export default app.fetch (Workers)
-routes/
-health.ts
-hello.ts
-lib/
-trace.ts # tiny logger
-agent.ts # createMastraAgent()
-providers/ # your MastraProviders + Models
+**Test**
 
-yaml
-Copy code
-
-> If the repo includes a local dev `Agent` shim, swap it to the real **`@mastra/core`** in production.
+```bash
+curl -s http://127.0.0.1:8787/
+curl -s -X POST http://127.0.0.1:8787/hello -H 'content-type: application/json' -d '{"name":"Ada"}'
+```
 
 ---
 
-## Prerequisites
+## Cloudflare AI Gateway (used by default)
 
-- Node 18+
-- Wrangler (`npm i -g wrangler`)
-- pnpm (or npm/yarn)
-
----
-
-## Environment
-
-Create a `.dev.vars` at the repo root (used by `wrangler dev`) **or** export these as env vars.
-
-**Workers AI (recommended)**
+- All Workers‑AI calls are proxied via **AI Gateway** for analytics, caching, and key protection.
+- Set your Account + **Gateway ID** in `.dev.vars` and in the Worker’s production variables.
+- Our provider helper reads these and points the Mastra agent at the Gateway endpoint.
 
 ```ini
-CLOUDFLARE_ACCOUNT_ID=your_account_id
-CLOUDFLARE_GATEWAY_ID=your_gateway_id
-CLOUDFLARE_API_TOKEN=your_api_token
-OpenAI (optional)
-
-ini
-Copy code
-OPENAI_API_KEY=sk-...
-If you also test email, add:
-
-ini
-Copy code
-RESEND_API_KEY=re_...
-Install & Run
-bash
-Copy code
-pnpm install
-pnpm dev           # wrangler dev; http://127.0.0.1:8787
-API
-1) Health
-pgsql
-Copy code
-GET /
-→ 200 { status, timestamp, cf_ray }
-2) Hello (demo agent)
-css
-Copy code
-POST /hello
-Body: { "name": "Ada" }
-→ 200 { greeting, name }
-cURL Quickstart
-bash
-Copy code
-# Health
-curl -s http://127.0.0.1:8787/
-
-# Hello demo
-curl -s -X POST http://127.0.0.1:8787/hello \
-  -H 'content-type: application/json' \
-  -d '{"name":"Lily"}'
-Using Mastra Providers (snippets)
-Adjust imports to match your providers/ module and the real Mastra SDK package name.
-
-ts
-Copy code
-import { Agent } from '@mastra/core';
-import { MastraProviders, Models } from './providers';
-
-/** Workers AI (env-based) */
-const cf = MastraProviders.cloudflare();
-const cfAgent = new Agent({
-  name: 'cf-agent',
-  instructions: 'Powered by Cloudflare Workers AI.',
-  model: cf.get()('@cf/meta/llama-3.1-8b-instruct'),
-});
-
-/** Workers AI (explicit config) */
-const cfExplicit = MastraProviders.cloudflare({
-  accountId: 'your-account-id',
-  gatewayId: 'your-gateway-id',
-  apiToken: 'your-api-token',
-});
-const cfAgent2 = new Agent({
-  name: 'cf-agent-2',
-  instructions: 'Explicit config.',
-  model: cfExplicit.get()('@cf/meta/llama-3.1-8b-instruct'),
-});
-
-/** OpenAI */
-const openai = MastraProviders.openai();
-const openaiAgent = new Agent({
-  name: 'openai-agent',
-  instructions: 'Powered by OpenAI.',
-  model: openai.get()('gpt-4o-mini'),
-});
-
-/** Auto-detect */
-const auto = MastraProviders.auto();
-const autoAgent = new Agent({
-  name: 'auto-agent',
-  instructions: 'Pick the best available provider.',
-  model: auto.get()(Models.WorkersAI.LLAMA_3_1_8B),
-});
-Deploy
-bash
-Copy code
-wrangler deploy
-Ensure your production environment variables are configured in Cloudflare (Dashboard → Workers → Settings → Variables).
-
-Troubleshooting
-401/403 from Workers AI → check CLOUDFLARE_* values and Gateway access.
-
-“fetch failed” → confirm wrangler whoami and account id; retry wrangler dev.
-
-Type errors for Agent → install the correct Mastra package and update the import path.
-
-CORS (browser clients) → add Hono CORS middleware.
-
-Nothing responds → confirm index.ts exports default app.fetch.
-
-License
-MIT — use freely for prototypes and demos.
+# .dev.vars
+CLOUDFLARE_ACCOUNT_ID=xxx
+CLOUDFLARE_GATEWAY_ID=xxx   # AI Gateway -> Gateway ID
+CLOUDFLARE_API_TOKEN=xxx    # token with AI Gateway access
 ```
+
+> If you switch providers, the Mastra agent will still route Workers‑AI traffic through the Gateway automatically when the env vars above are present.
+
+---
+
+## Env Vars (`.dev.vars`)
+
+```ini
+# Workers AI (via AI Gateway)
+CLOUDFLARE_ACCOUNT_ID=xxx
+CLOUDFLARE_GATEWAY_ID=xxx
+CLOUDFLARE_API_TOKEN=xxx
+
+# OpenAI (optional)
+OPENAI_API_KEY=sk-...
+
+# Email (optional)
+RESEND_API_KEY=re_...
+```
+
+---
+
+## Structure
+
+```
+src/
+  app.ts               # Hono app + routes
+  index.ts             # export default app.fetch
+  routes/
+    health.ts          # GET /
+    hello.ts           # POST /hello { name }
+  agents/
+    helloAgent.ts      # Mastra agent factory
+    index.ts           # export { helloAgent } from "./helloAgent"
+  lib/
+    agent.ts           # createMastraAgent()
+  providers/
+    index.ts           # MastraProviders, Models
+```
+
+---
+
+## Endpoints
+
+- **GET /** → `{ status, timestamp, cf_ray }`
+- **POST /hello** `{ name }` → `{ greeting, name }`
+
+---
+
+## Key Snippets
+
+**`src/agents/helloAgent.ts`**
+
+```ts
+import type { Context } from 'hono';
+import { MastraAgent } from '@/lib/agent';
+import { Models } from '@/providers';
+
+export function helloAgent(c: Context) {
+	return new MastraAgent(c, {
+		provider: 'workers-ai', // routed via Cloudflare AI Gateway when env vars are set
+		model: Models.WorkersAI.LLAMA_3_1_8B,
+		name: 'hello-agent',
+		instructions: "You are a friendly greeter. Always respond with enthusiasm and include the person's name.",
+	});
+}
+```
+
+**`src/routes/hello.ts`**
+
+```ts
+import type { Context } from 'hono';
+import { helloAgent } from '@/agents';
+
+export async function hello(c: Context) {
+	const body = await c.req.json().catch(() => ({} as { name?: string }));
+	const name = body.name ?? 'World';
+	const agent = helloAgent(c);
+	const greeting = await agent.generateVNext(`Say hello to ${name}`);
+	return c.json({ greeting, name });
+}
+```
+
+**`src/app.ts`**
+
+```ts
+import { Hono } from 'hono';
+import { health } from '@/routes/health';
+import { hello } from '@/routes/hello';
+
+export const app = new Hono();
+app.get('/', health);
+app.post('/hello', hello);
+```
+
+**`src/index.ts`**
+
+```ts
+import { app } from './app';
+export default app.fetch;
+```
+
+---
+
+## Deploy
+
+```bash
+wrangler deploy
+```
+
+> Ensure production variables are set in Cloudflare → Workers → **Settings → Variables** (including `CLOUDFLARE_GATEWAY_ID`).
+
+---
+
+## Troubleshooting
+
+- **401/403 (Workers AI)**: check `CLOUDFLARE_*` vars and AI Gateway permissions.
+- **TS2307**: verify path aliases & `src/agents/index.ts`.
+- **Blank Worker**: ensure `export default app.fetch`.
