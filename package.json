@@ -11,9 +11,10 @@
         "tail": "pnpm exec wrangler tail"
     },
     "dependencies": {
-        "@ai-sdk/openai": "^2.0.36",
-        "@mastra/core": "^0.18.0",
-        "hono": "^4.6.0"
+    "ai": "^5.0.0",
+    "@ai-sdk/openai": "^2.0.36",
+    "@mastra/core": "^0.18.0",
+    "hono": "^4.6.0"
     },
     "devDependencies": {
         "@cloudflare/vitest-pool-workers": "^0.9.7",
