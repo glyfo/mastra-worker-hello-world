@@ -10,7 +10,7 @@ export async function hello(c: Context) {
 
   try {
     // v5 non-stream: pass a STRING (not an object)
-    const greeting = await agent.generateVNext(`Say hello to ${name}`);
+    const greeting = await agent.generateVNext(`Say hello to ${name} and give additional information about yourself`);
     return c.json({ greeting, name });
   } catch (err: any) {
     return c.json({ error: err?.message ?? "Generation failed" }, 500);
