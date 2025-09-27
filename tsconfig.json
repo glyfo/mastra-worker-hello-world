@@ -4,7 +4,8 @@
 		"paths": {
 			"@routes/*": ["src/routes/*"],
 			"@agents/*": ["src/mastra/agents/*"],
-			"@providers/*": ["src/mastra/providers/*"]
+			"@providers/*": ["src/mastra/providers/*"],
+			"@utils/*": ["src/mastra/utils/*"]
 		},
 
 		"target": "ES2022",
