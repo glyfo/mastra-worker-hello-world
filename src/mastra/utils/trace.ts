@@ -3,5 +3,5 @@
  */
 export function trace(msg: string, data?: unknown) {
 	// eslint-disable-next-line no-console
-	console.info('[App]', msg, data);
+	console.log('[App]', msg, data);
 }
