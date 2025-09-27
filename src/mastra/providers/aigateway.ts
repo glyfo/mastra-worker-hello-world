@@ -25,5 +25,5 @@ export function makeGatewayWorkersAI(env: Env) {
 		baseURL, // OpenAI-compatible Workers AI gateway
 	});
 
-	return () => openai.chat('@cf/meta/llama-3.2-3b-instruct');
+	return () => openai('@cf/meta/llama-3.2-3b-instruct');
 }
