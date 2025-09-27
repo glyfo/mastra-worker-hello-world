@@ -27,5 +27,5 @@ export function makeGatewayWorkersAI(env: Env) {
 
 	//return () => openai('@cf/meta/llama-3.2-3b-instruct');
 
-	return () => openai('workers-ai/@cf/meta/llama-3.2-3b-instruct');
+	return () => openai('@cf/meta/llama-3.2-3b-instruct');
 }
