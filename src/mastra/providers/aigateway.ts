@@ -18,5 +18,5 @@ export function makeGatewayWorkersAI(env: Env) {
 	// Expose Workers AI via Gateway (OpenAI-compatible)
 	const workersai = createWorkersAI({ binding: env.AI });
 
-	return () => aigateway([workersai('@cf/meta/llama-3.2-3b-instruct')]);
+	return () => aigateway([workersai.chat('@cf/meta/llama-3.2-3b-instruct')]);
 }
