@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.38",
+		"@cloudflare/ai": "^1.2.2",
 		"@mastra/core": "^0.18.0",
 		"@mastra/deployer-cloudflare": "^0.14.2",
 		"ai": "^5.0.56",

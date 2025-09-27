@@ -2,13 +2,13 @@ import { createAiGateway } from 'ai-gateway-provider';
 import { createWorkersAI } from 'workers-ai-provider';
 
 type Env = {
-	AI: any; // <- REQUIRED: Workers AI binding from wrangler.toml [ai]
-	CF_ACCOUNT_ID?: string; // optional: Gateway account id
-	CF_GATEWAY?: string; // optional: Gateway name
-	CF_API_TOKEN?: string; // optional: Gateway API token (if auth enabled)
+	AI: any; // Workers AI binding from wrangler.toml [ai]
+	CF_ACCOUNT_ID: string; // Cloudflare account id (optional)
+	CF_GATEWAY: string; // AI Gateway name (optional)
+	CF_API_TOKEN: string; // Gateway API token if auth enabled (optional)
 };
 
-export function makeGatewayWorkersAI(env: { CF_ACCOUNT_ID: string; CF_GATEWAY: string; CF_API_TOKEN: string }) {
+export function makeGatewayWorkersAI(env: Env) {
 	const aigateway = createAiGateway({
 		accountId: env.CF_ACCOUNT_ID,
 		gateway: env.CF_GATEWAY,
