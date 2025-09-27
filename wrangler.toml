@@ -4,6 +4,9 @@ main = "src/app.ts"
 compatibility_date = "2025-09-27"
 compatibility_flags = ["nodejs_compat"]
 
+[ai]
+binding = "AI"  
+
 # Observability configuration
 [observability]
 enabled = true

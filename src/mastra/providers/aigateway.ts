@@ -1,5 +1,12 @@
 import { createAiGateway } from 'ai-gateway-provider';
-import { workersAiModel } from './workers-ai-adapter';
+import { createWorkersAI } from 'workers-ai-provider';
+
+type Env = {
+	AI: any; // <- REQUIRED: Workers AI binding from wrangler.toml [ai]
+	CF_ACCOUNT_ID?: string; // optional: Gateway account id
+	CF_GATEWAY?: string; // optional: Gateway name
+	CF_API_TOKEN?: string; // optional: Gateway API token (if auth enabled)
+};
 
 export function makeGatewayWorkersAI(env: { CF_ACCOUNT_ID: string; CF_GATEWAY: string; CF_API_TOKEN: string }) {
 	const aigateway = createAiGateway({
@@ -9,5 +16,7 @@ export function makeGatewayWorkersAI(env: { CF_ACCOUNT_ID: string; CF_GATEWAY: s
 	});
 
 	// Expose Workers AI via Gateway (OpenAI-compatible)
-	return () => aigateway([workersAiModel(env, '@cf/meta/llama-3.1-8b-instruct')]);
+	const workersai = createWorkersAI({ binding: env.AI });
+
+	return () => aigateway([workersai('@cf/meta/llama-2-7b-chat-int8')]);
 }
