@@ -1,50 +1,48 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@agents/*": ["src/agents/*"],
-      "@/emails/*": ["src/emails/*"],
-      "@/routes/*": ["src/routes/*"],
-      "@/lib/*": ["src/lib/*"]
-    },
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@routes/*": ["src/routes/*"],
+			"@agents/*": ["src/mastra/agents/*"],
+			"@providers/*": ["src/mastra/providers/*"]
+		},
 
-    "target": "ES2022",
-    "lib": ["ES2022", "WebWorker"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+		"target": "ES2022",
+		"lib": ["ES2022", "WebWorker"],
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
 
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
 
-    "types": ["@cloudflare/workers-types", "@types/react"],
+		"types": ["@cloudflare/workers-types", "@types/react"],
 
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
 
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "useUnknownInCatchVariables": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"useUnknownInCatchVariables": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": false,
+		"forceConsistentCasingInFileNames": true,
 
-    "allowJs": true,
-    "checkJs": false,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+		"allowJs": true,
+		"checkJs": false,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
 
-    "skipLibCheck": true,
+		"skipLibCheck": true,
 
-    "removeComments": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": false
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", ".wrangler", "wrangler.toml"]
+		"removeComments": true,
+		"exactOptionalPropertyTypes": true,
+		"noUncheckedIndexedAccess": false
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist", ".wrangler", "wrangler.toml"]
 }
