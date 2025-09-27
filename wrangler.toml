@@ -1,7 +1,7 @@
 # wrangler.toml
 name = "mastra-hono-hello-world"
 main = "src/app.ts"
-compatibility_date = "2024-09-23"
+compatibility_date = "2025-09-27"
 compatibility_flags = ["nodejs_compat"]
 
 # Observability configuration
