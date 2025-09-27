@@ -8,11 +8,13 @@
 		"deploy": "wrangler deploy",
 		"start": "wrangler dev",
 		"test": "vitest",
-		"tail": "pnpm exec wrangler tail"
+		"tail": "pnpm exec wrangler tail",
+		"deploy:mastra": "ts-node scripts/deploy.ts"
 	},
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.38",
 		"@mastra/core": "^0.18.0",
+		"@mastra/deployer-cloudflare": "^0.14.2",
 		"ai": "^5.0.56",
 		"ai-gateway-provider": "^2.0.0",
 		"hono": "^4.9.9",
