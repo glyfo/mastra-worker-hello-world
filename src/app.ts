@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { health } from '@routes/health';
 import { support } from '@routes/support';
-import type { AppCtx } from '@/types';
+import type { AppCtx } from './type';
 
 const app = new Hono<AppCtx>();
 

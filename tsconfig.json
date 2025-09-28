@@ -2,11 +2,11 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
+			"@types/*": ["src/*"],
 			"@routes/*": ["src/routes/*"],
 			"@agents/*": ["src/mastra/agents/*"],
 			"@providers/*": ["src/mastra/providers/*"],
-			"@utils/*": ["src/mastra/utils/*"],
-			"@types/*": ["src/types/*"]
+			"@utils/*": ["src/mastra/utils/*"]
 		},
 
 		"target": "ES2022",
