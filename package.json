@@ -13,7 +13,6 @@
 	},
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.38",
-		"@cloudflare/ai": "^1.2.2",
 		"@mastra/core": "^0.18.0",
 		"@mastra/deployer-cloudflare": "^0.14.2",
 		"ai": "^5.0.56",
@@ -23,9 +22,9 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.9.7",
-		"@cloudflare/workers-types": "^4.20250926.0",
+		"@cloudflare/workers-types": "^4.20250927.0",
 		"@types/node": "^24.5.2",
-		"@types/react": "^19.1.13",
+		"@types/react": "^19.1.15",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.9.2",
 		"vitest": "^3.2.4",
