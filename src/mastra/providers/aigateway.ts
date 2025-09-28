@@ -1,7 +1,7 @@
 import { createAiGateway } from 'ai-gateway-provider';
 //import { createWorkersAI } from 'workers-ai-provider';
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, type CoreMessage } from 'ai';
+//import { streamText, type CoreMessage } from 'ai';
 
 type Env = {
 	AI: any; // Workers AI binding from wrangler.toml [ai]
@@ -19,28 +19,28 @@ export function makeGatewayWorkersAI(env: Env) {
 
 	// Expose Workers AI via Gateway (OpenAI-compatible)
 	//const workersai = createWorkersAI({ binding: env.AI });
-	const baseURL = `https://gateway.ai.cloudflare.com/v1/` + `${env.CLOUDFLARE_ACCOUNT_ID}/` + `${env.CLOUDFLARE_GATEWAY_ID}/openai`; // <- important suffix
+	const baseURL = `https://gateway.ai.cloudflare.com/v1/` + `${env.CLOUDFLARE_ACCOUNT_ID}/` + `${env.CLOUDFLARE_GATEWAY_ID}/workers-ai/v1`; // <- important suffix
 
 	const openai = createOpenAI({
 		apiKey: env.CLOUDFLARE_API_TOKEN,
 		baseURL, // OpenAI-compatible Workers AI gateway
 	});
 
-	//return () => openai('@cf/meta/llama-3.2-3b-instruct');
+	return () => openai.chat('@cf/meta/llama-3.2-3b-instruct');
 
 	//return () => openai.chat('@cf/meta/llama-3.2-3b-instruct');
 	// ✅ Use the chat flavor to hit /v1/chat/completions
 	// Chat flavor ensures /v1/chat/completions is used
-	const model = openai.chat('workers-ai/@cf/meta/llama-3.2-3b-instruct');
+	//const model = openai.chat('workers-ai/@cf/meta/llama-3.2-3b-instruct');
 
-	return {
-		async streamPrompt(prompt: string) {
-			const result = await streamText({ model, prompt });
-			return result.toTextStreamResponse();
-		},
-		async streamMessages(messages: CoreMessage[]) {
-			const result = await streamText({ model, messages });
-			return result.toTextStreamResponse();
-		},
-	};
+	//return {
+	//	async streamPrompt(prompt: string) {
+	//		const result = await streamText({ model, prompt });
+	//		return result.toTextStreamResponse();
+	//	},
+	//	async streamMessages(messages: CoreMessage[]) {
+	//		const result = await streamText({ model, messages });
+	//		return result.toTextStreamResponse();
+	//	},
+	//};
 }
