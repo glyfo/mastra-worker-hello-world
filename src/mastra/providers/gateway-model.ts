@@ -1,11 +1,10 @@
-// models/gateway-model.ts
 import { createAiGateway } from 'ai-gateway-provider';
 import { createWorkersAI } from 'workers-ai-provider';
 
 type Env = {
-	AI: any; // Workers AI binding from wrangler.toml [ai]
-	CLOUDFLARE_ACCOUNT_ID: string; // Cloudflare account id (optional)
-	CLOUDFLARE_GATEWAY_ID: string; // AI Gateway name (optional)
+	AI: any;
+	CLOUDFLARE_ACCOUNT_ID: string;
+	CLOUDFLARE_GATEWAY_ID: string;
 };
 
 // Minimal AiGateway creator (single route to Workers AI)
@@ -15,6 +14,7 @@ export function makeGatewayWorkersAI(env: Env) {
 		gateway: env.CLOUDFLARE_GATEWAY_ID,
 	});
 }
+
 // Mastra factory: returns a function that yields a Model instance
 export function makeGatewayModel(env: Env) {
 	const workersai = createWorkersAI({ binding: env.AI });

@@ -5,7 +5,8 @@
 			"@types/*": ["src/*"],
 			"@routes/*": ["src/routes/*"],
 			"@agents/*": ["src/mastra/agents/*"],
-			"@providers/*": ["src/mastra/providers/*"],
+			"@providers": ["providers"],
+			"@providers/*": ["providers/*"],
 			"@utils/*": ["src/mastra/utils/*"]
 		},
 
