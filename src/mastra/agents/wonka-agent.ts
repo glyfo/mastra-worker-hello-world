@@ -1,14 +1,14 @@
 // support-agent.ts
 import { Agent } from '@mastra/core';
 import type { Context } from 'hono';
-import { makeWorkersAIDynamicModel } from '@providers/workersai';
+import { makeGatewayWorkersAI } from '@providers/workersai';
 
 export function makeWonkaAgent(c: Context) {
 	// Pull env off Hono context (Workers style)
 	const env = (c as any)?.env ?? {};
 
 	// Create the model via your gateway provider
-	const model = makeWorkersAIDynamicModel(env);
+	const model = makeGatewayWorkersAI(env);
 
 	// Instantiate the agent
 	const agent = new Agent({
