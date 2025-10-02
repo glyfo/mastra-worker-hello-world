@@ -136,3 +136,17 @@ Deploy with Wrangler:
 ```bash
 pnpm wrangler deploy
 ```
+
+---
+
+## ⚠️ Known Issues
+
+- **Workers AI Gateway limitation**  
+  If you see the following error:
+
+  ```
+  Sorry, but provider "workersai.chat" is currently not supported. Please open an issue.
+  ```
+
+  This happens when trying to use the **AI Gateway** with `workersai.chat`.  
+  ✅ Workaround: Use `workersai` directly instead of `workersai.chat`, or configure a different supported provider.
