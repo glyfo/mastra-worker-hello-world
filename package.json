@@ -12,22 +12,22 @@
 		"deploy:mastra": "pnpm exec ts-node scripts/deploy.ts"
 	},
 	"dependencies": {
-		"@ai-sdk/openai": "^2.0.38",
-		"@mastra/core": "^0.18.0",
-		"@mastra/deployer-cloudflare": "^0.14.2",
-		"ai": "^5.0.56",
+		"@ai-sdk/openai": "^2.0.42",
+		"@mastra/core": "^0.19.1",
+		"@mastra/deployer-cloudflare": "^0.14.4",
+		"ai": "^5.0.59",
 		"ai-gateway-provider": "^2.0.0",
 		"hono": "^4.9.9",
 		"workers-ai-provider": "^2.0.0"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.9.7",
-		"@cloudflare/workers-types": "^4.20250927.0",
-		"@types/node": "^24.5.2",
-		"@types/react": "^19.1.15",
+		"@cloudflare/vitest-pool-workers": "^0.9.8",
+		"@cloudflare/workers-types": "^4.20251001.0",
+		"@types/node": "^24.6.2",
+		"@types/react": "^19.2.0",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.9.2",
+		"typescript": "^5.9.3",
 		"vitest": "^3.2.4",
-		"wrangler": "^4.40.2"
+		"wrangler": "^4.40.3"
 	}
 }
