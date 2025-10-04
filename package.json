@@ -6,17 +6,16 @@
 	"scripts": {
 		"dev": "wrangler dev",
 		"deploy": "wrangler deploy",
+		"deploy:mastra": "pnpm exec ts-node scripts/deploy.ts",
 		"start": "wrangler dev",
 		"test": "vitest",
-		"tail": "pnpm exec wrangler tail",
-		"deploy:mastra": "pnpm exec ts-node scripts/deploy.ts"
+		"tail": "pnpm exec wrangler tail"
 	},
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.42",
 		"@mastra/core": "^0.19.1",
 		"@mastra/deployer-cloudflare": "^0.14.4",
 		"ai": "^5.0.59",
-		"ai-gateway-provider": "^2.0.0",
 		"hono": "^4.9.9",
 		"workers-ai-provider": "^2.0.0"
 	},

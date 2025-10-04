@@ -20,9 +20,6 @@ importers:
       ai:
         specifier: ^5.0.59
         version: 5.0.59(zod@4.1.11)
-      ai-gateway-provider:
-        specifier: ^2.0.0
-        version: 2.0.0(zod@4.1.11)
       hono:
         specifier: ^4.9.9
         version: 4.9.9
@@ -1804,9 +1801,6 @@ packages:
   agentkeepalive@4.6.0:
     resolution: {integrity: sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ==}
     engines: {node: '>= 8.0.0'}
-
-  ai-gateway-provider@2.0.0:
-    resolution: {integrity: sha512-QjyQRSR+NEQU+5KeiAI9QC6s65eIGPIdaiVfkBMfDPPbYiXLcqchYK4Z4IUqlgKDE8+7Te2BdcXYq7dEcudViQ==}
 
   ai@4.3.19:
     resolution: {integrity: sha512-dIE2bfNpqHN3r6IINp9znguYdhIOheKW2LDigAMrgt/upT3B8eBGPSCblENvaZGoq+hxaN9fSMzjWpbqloP+7Q==}
@@ -5104,14 +5098,6 @@ snapshots:
   agentkeepalive@4.6.0:
     dependencies:
       humanize-ms: 1.2.1
-
-  ai-gateway-provider@2.0.0(zod@4.1.11):
-    dependencies:
-      '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.10(zod@4.1.11)
-      ai: 5.0.59(zod@4.1.11)
-    transitivePeerDependencies:
-      - zod
 
   ai@4.3.19(react@19.1.1)(zod@4.1.11):
     dependencies:

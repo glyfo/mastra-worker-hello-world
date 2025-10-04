@@ -8,6 +8,12 @@ compatibility_flags = ["nodejs_compat"]
 binding = "AI"  
 remote = true 
 
+[[d1_databases]]
+binding = "DB"
+database_name = "mastra-db"
+database_id = "your-database-id-from-step-1"
+
+
 # Observability configuration
 [observability]
 enabled = true
