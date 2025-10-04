@@ -9,9 +9,9 @@ binding = "AI"
 remote = true 
 
 [[d1_databases]]
-binding = "DB"
+binding = "mastra_db"
 database_name = "mastra-db"
-database_id = "your-database-id-from-step-1"
+database_id = "d6584a88-7cd7-479f-ba11-76b524ab9e86"
 
 
 # Observability configuration
